@@ -12,6 +12,7 @@ df_kevin = pd.DataFrame(data_kevin)
 df_kevin["date"] = pd.to_datetime(df_kevin["date"])
 df_kevin = df_kevin.sort_values("date")
 
+
 # Try to load Simon's data
 try:
     with open("Simon_Data.json") as f:
@@ -31,6 +32,8 @@ st.title("Fat Boy Slim Competition")
 kevin_start_weight = 78
 simon_start_weight = 100
 goal_end_date = datetime.datetime(2025, 12, 25)
+
+kevin_range_padding = 3  # in kg
 
 # Individual start dates
 kevin_start_date = df_kevin["date"].min()
@@ -89,7 +92,6 @@ if simon_available:
     ))
 
 # Layout with synchronized relative ranges
-kevin_range_padding = 3  # in kg
 
 fig.update_layout(
     yaxis=dict(
