@@ -42,40 +42,32 @@ fig.add_trace(go.Scatter(
     yaxis="y1"
 ))
 
-# Add Kevin's goal line
-if metric == "weight":
-    start_date = df_kevin["date"].min()
-    #start_weight = df_kevin.dropna(subset=["weight"]).iloc[0]["weight"]
-    start_weight = 79
-    goal_dates = pd.date_range(start=start_date, end=datetime.datetime(2025, 12, 25), freq="D")
-    months = ((goal_dates - start_date) / pd.Timedelta(days=30.437)).astype(float)
-    goal_weights = start_weight * (1 - 0.015 * months)
+# === Goal Line Setup ===
+goal_start_date = datetime.datetime(2025, 7, 20)
+goal_end_date = datetime.datetime(2025, 12, 25)
+goal_dates = pd.date_range(start=goal_start_date, end=goal_end_date, freq="D")
+months = ((goal_dates - goal_start_date) / pd.Timedelta(days=30.437)).astype(float)
 
+if metric == "weight":
+    kevin_start_weight = 79
+    simon_start_weight = 100
+
+    kevin_goal_weights = kevin_start_weight * (1 - 0.015 * months)
+    simon_goal_weights = simon_start_weight * (1 - 0.015 * months)
+
+    # Kevin's goal trendline
     fig.add_trace(go.Scatter(
         x=goal_dates,
-        y=goal_weights,
+        y=kevin_goal_weights,
         mode="lines",
-        name="Kevin Goal (−1.5%/mo)",
+        name="Goal Trendline",
         line=dict(dash="dot", color="gray"),
         yaxis="y1",
-        showlegend=False
+        showlegend=True
     ))
-    
 
-# Add dummy legend entry for shared goal trendline
-fig.add_trace(go.Scatter(
-    x=[None],
-    y=[None],
-    mode="lines",
-    name="Goal Trendline",
-    line=dict(dash="dot", color="gray"),
-    showlegend=True
-))
-
-# Simon's data on secondary axis
-if simon_available:
-    if metric == "weight":
-        # Simon's actual weight
+    # Simon's actual weight
+    if simon_available:
         fig.add_trace(go.Scatter(
             x=df_simon["date"],
             y=df_simon["weight"],
@@ -85,26 +77,20 @@ if simon_available:
             line=dict(color="green")
         ))
 
-        # Simon's goal
-        simon_start_date = df_simon["date"].min()
-        #simon_start_weight = df_simon.dropna(subset=["weight"]).iloc[0]["weight"]
-        simon_start_weight = 100
-        goal_dates_simon = pd.date_range(start=simon_start_date, end=datetime.datetime(2025, 12, 25), freq="D")
-        months_simon = ((goal_dates_simon - simon_start_date) / pd.Timedelta(days=30.437)).astype(float)
-        simon_goal = simon_start_weight * (1 - 0.015 * months_simon)
-
+        # Simon's goal trendline (hidden from legend)
         fig.add_trace(go.Scatter(
-            x=goal_dates_simon,
-            y=simon_goal,
+            x=goal_dates,
+            y=simon_goal_weights,
             mode="lines",
-            name="Simon Goal (−1.5%/mo)",
-            line=dict(dash="dot", color="lightgreen"),
+            name=None,
+            line=dict(dash="dot", color="gray"),
             yaxis="y2",
             showlegend=False
         ))
-        
-    else:
-        # For bodyFat, both use same axis
+
+else:
+    # Plot Simon's bodyFat on same axis
+    if simon_available:
         fig.add_trace(go.Scatter(
             x=df_simon["date"],
             y=df_simon["bodyFat"],
@@ -119,7 +105,7 @@ fig.update_layout(
     title=f"{metric.capitalize()} Over Time",
     xaxis=dict(
         title="Date",
-        range=[df_kevin["date"].min(), datetime.datetime(2025, 12, 25)]
+        range=[df_kevin["date"].min(), goal_end_date]
     ),
     yaxis=dict(
         title="Kevin",
@@ -150,7 +136,6 @@ col1, col2 = st.columns(2)
 # Kevin's stats (left)
 with col1:
     st.subheader("Kevin's Stats")
-    #start_k = df_kevin.dropna(subset=["weight"]).iloc[0]["weight"]
     start_k = 79
     latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
     loss_k = start_k - latest_k
@@ -164,7 +149,6 @@ with col1:
 if simon_available:
     with col2:
         st.subheader("Simon's Stats")
-        #start_s = df_simon.dropna(subset=["weight"]).iloc[0]["weight"]
         start_s = 100
         latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
         loss_s = start_s - latest_s
@@ -173,6 +157,5 @@ if simon_available:
         st.metric("Starting Weight", f"{start_s:.1f} kg")
         st.metric("Latest Weight", f"{latest_s:.1f} kg")
         st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
-
 
 #streamlit run dashboard.py
