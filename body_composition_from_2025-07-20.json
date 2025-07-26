@@ -1,0 +1,37 @@
+[
+    {
+        "date": "2025-07-20",
+        "weight": null,
+        "bodyFat": null
+    },
+    {
+        "date": "2025-07-21",
+        "weight": 77629.0,
+        "bodyFat": 19.5
+    },
+    {
+        "date": "2025-07-22",
+        "weight": 78629.0,
+        "bodyFat": 19.5
+    },
+    {
+        "date": "2025-07-23",
+        "weight": 78739.0,
+        "bodyFat": 19.6
+    },
+    {
+        "date": "2025-07-24",
+        "weight": 77.79,
+        "bodyFat": 19.6
+    },
+    {
+        "date": "2025-07-25",
+        "weight": null,
+        "bodyFat": null
+    },
+    {
+        "date": "2025-07-26",
+        "weight": null,
+        "bodyFat": null
+    }
+]
