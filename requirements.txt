@@ -1,2 +1,5 @@
 garminconnect
 requests
+streamlit
+pandas
+plotly
