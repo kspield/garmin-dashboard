@@ -45,7 +45,8 @@ fig.add_trace(go.Scatter(
 # Add Kevin's goal line
 if metric == "weight":
     start_date = df_kevin["date"].min()
-    start_weight = df_kevin.dropna(subset=["weight"]).iloc[0]["weight"]
+    #start_weight = df_kevin.dropna(subset=["weight"]).iloc[0]["weight"]
+    start_weight = 79
     goal_dates = pd.date_range(start=start_date, end=datetime.datetime(2025, 12, 25), freq="D")
     months = ((goal_dates - start_date) / pd.Timedelta(days=30.437)).astype(float)
     goal_weights = start_weight * (1 - 0.015 * months)
@@ -86,7 +87,8 @@ if simon_available:
 
         # Simon's goal
         simon_start_date = df_simon["date"].min()
-        simon_start_weight = df_simon.dropna(subset=["weight"]).iloc[0]["weight"]
+        #simon_start_weight = df_simon.dropna(subset=["weight"]).iloc[0]["weight"]
+        simon_start_weight = 100
         goal_dates_simon = pd.date_range(start=simon_start_date, end=datetime.datetime(2025, 12, 25), freq="D")
         months_simon = ((goal_dates_simon - simon_start_date) / pd.Timedelta(days=30.437)).astype(float)
         simon_goal = simon_start_weight * (1 - 0.015 * months_simon)
