@@ -150,7 +150,8 @@ col1, col2 = st.columns(2)
 # Kevin's stats (left)
 with col1:
     st.subheader("Kevin's Stats")
-    start_k = df_kevin.dropna(subset=["weight"]).iloc[0]["weight"]
+    #start_k = df_kevin.dropna(subset=["weight"]).iloc[0]["weight"]
+    start_k = 79
     latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
     loss_k = start_k - latest_k
     loss_pct_k = 100 * loss_k / start_k
@@ -163,7 +164,8 @@ with col1:
 if simon_available:
     with col2:
         st.subheader("Simon's Stats")
-        start_s = df_simon.dropna(subset=["weight"]).iloc[0]["weight"]
+        #start_s = df_simon.dropna(subset=["weight"]).iloc[0]["weight"]
+        start_s = 100
         latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
         loss_s = start_s - latest_s
         loss_pct_s = 100 * loss_s / start_s
