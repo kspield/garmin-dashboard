@@ -94,13 +94,15 @@ fig.update_layout(
     ),
     yaxis=dict(
         title="Kevin",
-        side="left"
+        side="left",
+        range=yaxis_range
     ),
     yaxis2=dict(
         title="Simon",
         overlaying="y",
         side="right",
-        showgrid=False
+        showgrid=False,
+        range=yaxis_range  # force same scale
     ),
     legend=dict(
         x=0.99,
