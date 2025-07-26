@@ -1,0 +1,15 @@
+# Garmin token files
+.garminconnect
+.garminconnect_base64
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local test output
+response.json
+*.bak
+
+# IDE files (optional)
+.vscode/
+.idea/

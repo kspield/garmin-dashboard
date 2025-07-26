@@ -33,7 +33,7 @@ api = None
 
 end_date = datetime.date.today()
 
-json_file = "body_composition_from_2025-07-20.json"
+json_file = "Kevin_Data.json"
 existing_data = []
 
 if os.path.exists(json_file):
@@ -214,7 +214,8 @@ if api:
                 "bodyFat": body_fat
             })
 
-            print(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
+            #print(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
+            logger.info(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
 
         # Save to JSON file
 
