@@ -48,9 +48,9 @@ if os.path.exists(json_file):
         last_valid_date_str = valid_entries[-1]["date"]
         start_date = datetime.datetime.strptime(last_valid_date_str, "%Y-%m-%d").date()
     else:
-        start_date = datetime.date(2025, 7, 20)  # fallback start
+        start_date = datetime.date(2025, 7, 24)  # fallback start
 else:
-    start_date = datetime.date(2025, 7, 20)
+    start_date = datetime.date(2025, 7, 24)
 
 all_data = []
 

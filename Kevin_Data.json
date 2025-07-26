@@ -1,25 +1,5 @@
 [
     {
-        "date": "2025-07-20",
-        "weight": null,
-        "bodyFat": null
-    },
-    {
-        "date": "2025-07-21",
-        "weight": 77.63,
-        "bodyFat": 19.5
-    },
-    {
-        "date": "2025-07-22",
-        "weight": 78.63,
-        "bodyFat": 19.5
-    },
-    {
-        "date": "2025-07-23",
-        "weight": 78.74,
-        "bodyFat": 19.6
-    },
-    {
         "date": "2025-07-24",
         "weight": 77.79,
         "bodyFat": 19.6
