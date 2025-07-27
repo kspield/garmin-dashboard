@@ -8,6 +8,7 @@ from firebase_admin import credentials, firestore
 # --- Firebase Setup ---
 if not firebase_admin._apps:
     firebase_secrets = st.secrets["firebase"]
+
     cred = credentials.Certificate({
         "type": firebase_secrets["type"],
         "project_id": firebase_secrets["project_id"],
@@ -18,8 +19,10 @@ if not firebase_admin._apps:
         "auth_uri": firebase_secrets["auth_uri"],
         "token_uri": firebase_secrets["token_uri"],
         "auth_provider_x509_cert_url": firebase_secrets["auth_provider_x509_cert_url"],
-        "client_x509_cert_url": firebase_secrets["client_x509_cert_url"]
+        "client_x509_cert_url": firebase_secrets["client_x509_cert_url"],
     })
+
+    # Initialize Firebase with the credentials
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
@@ -111,5 +114,5 @@ if simon_available:
         st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
         st.metric("Latest Weight", f"{latest_s:.1f} kg")
         st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
-        
+
 #streamlit run dashboard.py
