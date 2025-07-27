@@ -5,6 +5,36 @@ import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+# --- Responsive styling for stats blocks ---
+st.markdown("""
+<style>
+.stats-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 1em;
+}
+
+.stat-box {
+    flex: 1 1 48%;
+    background-color: #f9f9f9;
+    padding: 1em;
+    margin: 0.5em;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .stat-box {
+        font-size: 14px;
+        flex-basis: 100%;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Firebase Setup ---
 if not firebase_admin._apps:
     cred = credentials.Certificate({k: v.replace("\\n", "\n") if k == "private_key" else v for k, v in st.secrets["firebase"].items()})
@@ -92,44 +122,38 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# --- Custom CSS for tighter display ---
-st.markdown("""
-    <style>
-        div[data-testid="metric-container"] {
-            padding: 0.25rem 0.5rem;
-        }
-        div[data-testid="metric-container"] > label {
-            font-size: 0.8rem;
-        }
-        div[data-testid="metric-container"] > div {
-            font-size: 1.1rem;
-        }
-    </style>
+
+# --- Stats Section ---
+st.markdown('<div class="stats-container">', unsafe_allow_html=True)
+
+# Kevin
+latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
+loss_k = kevin_start_weight - latest_k
+loss_pct_k = 100 * loss_k / kevin_start_weight
+st.markdown(f"""
+<div class="stat-box">
+    <h4>Kevin's Stats</h4>
+    <b>Starting Weight:</b> {kevin_start_weight:.1f} kg<br>
+    <b>Latest Weight:</b> {latest_k:.1f} kg<br>
+    <b>Total Loss:</b> {loss_k:.1f} kg ({loss_pct_k:.1f}%)
+</div>
 """, unsafe_allow_html=True)
 
-# --- Two-Column Stats Section ---
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("Kevin")
-    latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
-    loss_k = kevin_start_weight - latest_k
-    loss_pct_k = 100 * loss_k / kevin_start_weight
-    st.metric("Start", f"{kevin_start_weight:.1f} kg")
-    st.metric("Now", f"{latest_k:.1f} kg")
-    st.metric("Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}%)")
-
+# Simon
 if simon_available:
-    with col2:
-        st.subheader("Simon")
-        latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
-        loss_s = simon_start_weight - latest_s
-        loss_pct_s = 100 * loss_s / simon_start_weight
-        st.metric("Start", f"{simon_start_weight:.1f} kg")
-        st.metric("Now", f"{latest_s:.1f} kg")
-        st.metric("Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
-# --- Simon's Manual Entry Form ---
-st.subheader("Manual Weight Entry (Simon only)")
+    latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
+    loss_s = simon_start_weight - latest_s
+    loss_pct_s = 100 * loss_s / simon_start_weight
+    st.markdown(f"""
+    <div class="stat-box">
+        <h4>Simon's Stats</h4>
+        <b>Starting Weight:</b> {simon_start_weight:.1f} kg<br>
+        <b>Latest Weight:</b> {latest_s:.1f} kg<br>
+        <b>Total Loss:</b> {loss_s:.1f} kg ({loss_pct_s:.1f}%)
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 with st.form("simon_data_entry"):
     weight = st.number_input("Weight (kg)", value=100.0, min_value=30.0, max_value=200.0, step=0.01, format="%.2f")
