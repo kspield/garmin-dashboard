@@ -95,20 +95,18 @@ st.plotly_chart(fig, use_container_width=True)
 # --- Responsive layout with custom CSS ---
 st.markdown("""
 <style>
-/* Reduce font size for mobile devices */
 @media (max-width: 768px) {
     .mobile-column {
         display: inline-block !important;
         width: 48% !important;
         vertical-align: top;
     }
-    }
-    .mobile-column .element-container h3,
-    .mobile-column .element-container div[data-testid="stMetric"] {
+    .mobile-column h3,
+    .mobile-column div[data-testid="stMetric"] {
         font-size: 16px !important;
     }
-    .mobile-column .element-container .stMetricLabel,
-    .mobile-column .element-container .stMetricValue {
+    .mobile-column .stMetricLabel,
+    .mobile-column .stMetricValue {
         font-size: 14px !important;
     }
 }
@@ -117,27 +115,25 @@ st.markdown("""
 
 # --- Stats Section ---
 st.markdown('<div class="mobile-column">', unsafe_allow_html=True)
-with st.container():
-    st.subheader("Kevin's Stats")
-    latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
-    loss_k = kevin_start_weight - latest_k
-    loss_pct_k = 100 * loss_k / kevin_start_weight
-    st.metric("Starting Weight", f"{kevin_start_weight:.1f} kg")
-    st.metric("Latest Weight", f"{latest_k:.1f} kg")
-    st.metric("Total Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}%)")
+st.subheader("Kevin's Stats")
+latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
+loss_k = kevin_start_weight - latest_k
+loss_pct_k = 100 * loss_k / kevin_start_weight
+st.metric("Starting Weight", f"{kevin_start_weight:.1f} kg")
+st.metric("Latest Weight", f"{latest_k:.1f} kg")
+st.metric("Total Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}%)")
+st.markdown('</div>', unsafe_allow_html=True)
 
 if simon_available:
-    st.markdown('</div><div class="mobile-column">', unsafe_allow_html=True)
-    with st.container():
-        st.subheader("Simon's Stats")
-        latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
-        loss_s = simon_start_weight - latest_s
-        loss_pct_s = 100 * loss_s / simon_start_weight
-        st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
-        st.metric("Latest Weight", f"{latest_s:.1f} kg")
-        st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
+    st.markdown('<div class="mobile-column">', unsafe_allow_html=True)
+    st.subheader("Simon's Stats")
+    latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
+    loss_s = simon_start_weight - latest_s
+    loss_pct_s = 100 * loss_s / simon_start_weight
+    st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
+    st.metric("Latest Weight", f"{latest_s:.1f} kg")
+    st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
     st.markdown('</div>', unsafe_allow_html=True)
-
 
 # --- Simon's Manual Entry Form ---
 st.subheader("Manual Weight Entry (Simon only)")
