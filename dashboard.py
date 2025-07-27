@@ -17,17 +17,20 @@ def load_data(user: str) -> pd.DataFrame:
     records = []
     for doc in docs:
         entry = doc.to_dict()
-        if "date" in entry:
-            entry["date"] = pd.to_datetime(entry["date"])
+        date_str = entry.get("date", doc.id)  # Use 'date' field if present, else fallback to document ID
+        try:
+            entry["date"] = pd.to_datetime(date_str)
             records.append(entry)
+        except Exception as e:
+            st.warning(f"Skipping record with invalid date: {date_str} – {e}")
 
     df = pd.DataFrame(records)
-    
+
     if not df.empty:
-        df = df.dropna(subset=["date", "weight"])  # ensure no missing values
+        df = df.dropna(subset=["date", "weight"])
         df = df.groupby("date", as_index=False).agg({
             "weight": "mean",
-            "bodyFat": "mean"  # optional: or use .agg({"weight": "mean", "bodyFat": lambda x: x.mean(skipna=True)})
+            "bodyFat": "mean"
         }).sort_values("date")
 
     return df
