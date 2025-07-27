@@ -98,8 +98,10 @@ st.markdown("""
 /* Reduce font size for mobile devices */
 @media (max-width: 768px) {
     .mobile-column {
-        display: block !important;
-        width: 100% !important;
+        display: inline-block !important;
+        width: 48% !important;
+        vertical-align: top;
+    }
     }
     .mobile-column .element-container h3,
     .mobile-column .element-container div[data-testid="stMetric"] {
