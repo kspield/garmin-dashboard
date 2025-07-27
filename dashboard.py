@@ -29,8 +29,8 @@ def load_data(user: str) -> pd.DataFrame:
     return df
 
 # Load user data
-df_kevin = load_user_data("kevin")
-df_simon = load_user_data("simon")
+df_kevin = load_data("kevin")
+df_simon = load_data("simon")
 simon_available = not df_simon.empty
 
 # --- UI Layout ---
