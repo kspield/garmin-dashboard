@@ -92,7 +92,9 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# Simon manually enter weight Section
+
+# --- Simon Manual Entry Section ---
+st.subheader("Manual Weight Entry for Simon")
 
 with st.form("simon_data_entry"):
     weight = st.number_input("Weight (kg)", value=100.0, min_value=30.0, max_value=200.0, step=0.01, format="%.2f")
