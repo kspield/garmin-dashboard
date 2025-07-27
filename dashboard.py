@@ -27,9 +27,20 @@ def load_data(user: str) -> pd.DataFrame:
     return df
 
 # Load user data
+# Load user data
 df_kevin = load_data("kevin")
-df_simon = load_data("simon")
-simon_available = not df_simon.empty
+df_simon_raw = load_data("simon")
+simon_available = not df_simon_raw.empty
+
+# --- Group Simon's data by date and average it ---
+if simon_available:
+    df_simon = (
+        df_simon_raw.groupby("date", as_index=False)
+        .agg({"weight": "mean", "bodyFat": "mean"})
+        .sort_values("date")
+    )
+else:
+    df_simon = pd.DataFrame()
 
 # --- UI Layout ---
 st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
