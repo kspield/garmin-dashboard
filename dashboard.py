@@ -35,8 +35,9 @@ st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
 st.title("Fat Boy Slim Competition")
 
 # --- Constants ---
-kevin_start_weight, simon_start_weight = 78, 100
+kevin_start_weight, simon_start_weight = 79, 100
 goal_end_date = datetime.datetime(2025, 12, 25)
+goal_start_date = datetime.datetime(2025, 7, 25)
 kevin_range_padding = 3
 
 # --- Goal Computation ---
@@ -46,12 +47,12 @@ def compute_goal_weights(start_weight, start_date):
     goal_weights = start_weight * (1 - 0.015 * months)
     return goal_dates, goal_weights
 
-kevin_start_date = df_kevin["date"].min()
+kevin_start_date = goal_start_date
 goal_dates_kevin, kevin_goal_weights = compute_goal_weights(kevin_start_weight, kevin_start_date)
 kevin_goal_weight = kevin_goal_weights.iloc[-1]
 
 if simon_available:
-    simon_start_date = df_simon["date"].min()
+    simon_start_date = goal_start_date
     goal_dates_simon, simon_goal_weights = compute_goal_weights(simon_start_weight, simon_start_date)
     simon_goal_weight = simon_goal_weights.iloc[-1]
 
