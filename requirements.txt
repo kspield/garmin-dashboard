@@ -3,3 +3,4 @@ requests
 streamlit
 pandas
 plotly
+firebase-admin
