@@ -12,18 +12,21 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 # --- Load Data from Firestore ---
-def load_user_data(user_id: str) -> pd.DataFrame:
-    try:
-        docs = db.collection("users").document(user_id).collection("weights").stream()
-        data = [{"date": doc.id, **doc.to_dict()} for doc in docs]
-        df = pd.DataFrame(data)
-        if not df.empty:
-            df["date"] = pd.to_datetime(df["date"])
-            df = df.sort_values("date")
-        return df
-    except Exception as e:
-        st.warning(f"Could not load data for {user_id}: {e}")
-        return pd.DataFrame()
+def load_data(user: str) -> pd.DataFrame:
+    docs = db.collection("users").document(user).collection("weights").stream()
+    records = []
+    for doc in docs:
+        entry = doc.to_dict()
+        entry["date"] = doc.id  # assumes date is in document ID
+        records.append(entry)
+
+    df = pd.DataFrame(records)
+
+    if not df.empty:
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
+
+    return df
 
 # Load user data
 df_kevin = load_user_data("kevin")
