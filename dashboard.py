@@ -92,10 +92,21 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# --- Stats ---
-col1, col2 = st.columns(2)
+# --- Responsive layout with custom CSS ---
+st.markdown("""
+<style>
+@media (max-width: 768px) {
+    .mobile-column {
+        display: block !important;
+        width: 100% !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
 
-with col1:
+# --- Stats Section ---
+st.markdown('<div class="mobile-column">', unsafe_allow_html=True)
+with st.container():
     st.subheader("Kevin's Stats")
     latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
     loss_k = kevin_start_weight - latest_k
@@ -105,7 +116,8 @@ with col1:
     st.metric("Total Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}%)")
 
 if simon_available:
-    with col2:
+    st.markdown('</div><div class="mobile-column">', unsafe_allow_html=True)
+    with st.container():
         st.subheader("Simon's Stats")
         latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
         loss_s = simon_start_weight - latest_s
@@ -113,6 +125,7 @@ if simon_available:
         st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
         st.metric("Latest Weight", f"{latest_s:.1f} kg")
         st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- Simon's Manual Entry Form ---
