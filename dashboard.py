@@ -113,3 +113,26 @@ if simon_available:
         st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
         st.metric("Latest Weight", f"{latest_s:.1f} kg")
         st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
+
+
+# --- Simon's Manual Entry Form ---
+st.subheader("Manual Weight Entry (Simon only)")
+
+with st.form("simon_data_entry"):
+    weight = st.number_input("Weight (kg)", min_value=30.0, max_value=200.0, step=0.1, format="%.1f")
+    body_fat = st.number_input("Body Fat (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.1f")
+    date = st.date_input("Date of Measurement", value=datetime.date.today())
+
+    submitted = st.form_submit_button("Submit Data")
+
+    if submitted:
+        try:
+            date_str = date.isoformat()
+            doc_ref = db.collection("users").document("simon").collection("weight_data").document(date_str)
+            doc_ref.set({
+                "weight": weight,
+                "bodyFat": body_fat
+            })
+            st.success(f"✅ Entry saved for {date_str} in Firestore")
+        except Exception as e:
+            st.error(f"❌ Failed to save data: {e}")
