@@ -8,6 +8,21 @@ from getpass import getpass
 import requests
 from garth.exc import GarthHTTPError
 
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# Path to your service account key (downloaded from Firebase Console)
+cred_path = os.path.expanduser("~/fatboyslim-a061f-firebase-adminsdk-fbsvc-aa42e736d1.json")
+cred = credentials.Certificate(cred_path)
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+collection_name = "kevin_data"
+
+# LOGGING
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 from garminconnect import (
     Garmin,
     GarminConnectAuthenticationError,
@@ -189,8 +204,7 @@ if api:
     # Display menu
         # Skip requests if login failed
     try:
-        print(f"\n\nExecuting:")
-        new_data = []
+        print("Fetching data from Garmin...")
         for day in range((end_date - start_date).days + 1):
             date = start_date + datetime.timedelta(days=day)
             weight = None
@@ -200,7 +214,7 @@ if api:
                 body_data = api.get_body_composition(date.isoformat())
                 total_avg = body_data.get("totalAverage", {})
                 weight_raw = total_avg.get("weight")
-                weight = round(weight_raw / 1000, 2) if weight_raw is not None else None
+                weight = round(weight_raw / 1000, 2) if weight_raw else None
                 body_fat = total_avg.get("bodyFat")
             except Exception as e:
                 if "No data" in str(e) or "404" in str(e):
@@ -208,29 +222,17 @@ if api:
                 else:
                     print(f"{date}: Error – {e}")
 
-            new_data.append({
+            logger.info(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
+
+            # Save or update in Firebase
+            doc_ref = db.collection(collection_name).document(date.isoformat())
+            doc_ref.set({
                 "date": date.isoformat(),
                 "weight": weight,
                 "bodyFat": body_fat
-            })
+                            })
 
-            #print(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
-            logger.info(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
-
-        # Save to JSON file
-
-        # Convert to dict keyed by date to overwrite overlapping entries
-        merged = {entry["date"]: entry for entry in existing_data}
-        for entry in new_data:
-            merged[entry["date"]] = entry
-
-        # Sort and convert back to list
-        all_data = list(sorted(merged.values(), key=lambda x: x["date"]))
-
-        with open(json_file, "w") as f:
-            json.dump(all_data, f, indent=4)
-
-        print(f"\nSaved {len(all_data)} total entries to {json_file}")
+        print("✅ Data uploaded to Firebase.")
 
     except (
         GarminConnectConnectionError,
