@@ -132,7 +132,7 @@ if simon_available:
 st.subheader("Manual Weight Entry (Simon only)")
 
 with st.form("simon_data_entry"):
-    weight = st.number_input("Weight (kg)", min_value=30.0, max_value=200.0, step=0.01, format="%.2f")
+    weight = st.number_input("Weight (kg)", value=100.0, min_value=30.0, max_value=200.0, step=0.01, format="%.2f")
     body_fat = st.number_input("Body Fat (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.1f")
     date = st.date_input("Date of Measurement", value=datetime.date.today())
 
