@@ -57,10 +57,6 @@ if simon_available:
     goal_dates_simon, simon_goal_weights = compute_goal_weights(simon_start_weight, simon_start_date)
     simon_goal_weight = simon_goal_weights[-1]
 
-
-st.write("Kevin DataFrame columns:", df_kevin.columns.tolist())
-st.write("Kevin DataFrame head:", df_kevin.head())
-
 # --- Plot ---
 fig = go.Figure()
 
