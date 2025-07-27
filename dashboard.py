@@ -119,7 +119,7 @@ if simon_available:
 st.subheader("Manual Weight Entry (Simon only)")
 
 with st.form("simon_data_entry"):
-    weight = st.number_input("Weight (kg)", min_value=30.0, max_value=200.0, step=0.1, format="%.1f")
+    weight = st.number_input("Weight (kg)", min_value=30.0, max_value=200.0, step=0.01, format="%.2f")
     body_fat = st.number_input("Body Fat (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.1f")
     date = st.date_input("Date of Measurement", value=datetime.date.today())
 
@@ -128,10 +128,13 @@ with st.form("simon_data_entry"):
     if submitted:
         try:
             date_str = date.isoformat()
+            body_fat_cleaned = None if body_fat == 0.0 else round(body_fat, 1)
+            weight_cleaned = round(weight, 2)
+
             doc_ref = db.collection("users").document("simon").collection("weight_data").document(date_str)
             doc_ref.set({
-                "weight": weight,
-                "bodyFat": body_fat
+                "weight": weight_cleaned,
+                "bodyFat": body_fat_cleaned
             })
             st.success(f"✅ Entry saved for {date_str} in Firestore")
         except Exception as e:
