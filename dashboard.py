@@ -17,22 +17,28 @@ def load_data(user: str) -> pd.DataFrame:
     records = []
     for doc in docs:
         entry = doc.to_dict()
-        entry["date"] = doc.id  # doc ID is the date string
-        records.append(entry)
+        if "date" in entry:
+            entry["date"] = pd.to_datetime(entry["date"])
+            records.append(entry)
 
     df = pd.DataFrame(records)
+    
     if not df.empty:
-        df["date"] = pd.to_datetime(df["date"])
-        df = df.sort_values("date")
+        df = df.dropna(subset=["date", "weight"])  # ensure no missing values
+        df = df.groupby("date", as_index=False).agg({
+            "weight": "mean",
+            "bodyFat": "mean"  # optional: or use .agg({"weight": "mean", "bodyFat": lambda x: x.mean(skipna=True)})
+        }).sort_values("date")
+
     return df
 
 # Load user data
-# Load user data
 df_kevin = load_data("kevin")
+
+# Load Simon's data and average it per day
 df_simon_raw = load_data("simon")
 simon_available = not df_simon_raw.empty
 
-# --- Group Simon's data by date and average it ---
 if simon_available:
     df_simon = (
         df_simon_raw.groupby("date", as_index=False)
@@ -120,8 +126,10 @@ with st.form("simon_data_entry"):
             body_fat_cleaned = None if body_fat == 0.0 else round(body_fat, 1)
             weight_cleaned = round(weight, 2)
 
-            doc_ref = db.collection("users").document("simon").collection("weight_data").document(date_str)
+            # Use timestamp or a UUID to avoid overwriting
+            doc_ref = db.collection("users").document("simon").collection("weight_data").document()
             doc_ref.set({
+                "date": date_str,
                 "weight": weight_cleaned,
                 "bodyFat": body_fat_cleaned
             })
