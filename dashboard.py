@@ -49,12 +49,12 @@ def compute_goal_weights(start_weight, start_date):
 
 kevin_start_date = goal_start_date
 goal_dates_kevin, kevin_goal_weights = compute_goal_weights(kevin_start_weight, kevin_start_date)
-kevin_goal_weight = kevin_goal_weights.iloc[-1]
+kevin_goal_weight = kevin_goal_weights[-1]
 
 if simon_available:
     simon_start_date = goal_start_date
     goal_dates_simon, simon_goal_weights = compute_goal_weights(simon_start_weight, simon_start_date)
-    simon_goal_weight = simon_goal_weights.iloc[-1]
+    simon_goal_weight = simon_goal_weights[-1]
 
 # --- Plot ---
 fig = go.Figure()
@@ -96,7 +96,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Kevin's Stats")
-    latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
+    latest_k = df_kevin.dropna(subset=["weight"])[-1]["weight"]
     loss_k = kevin_start_weight - latest_k
     loss_pct_k = 100 * loss_k / kevin_start_weight
     st.metric("Starting Weight", f"{kevin_start_weight:.1f} kg")
@@ -106,7 +106,7 @@ with col1:
 if simon_available:
     with col2:
         st.subheader("Simon's Stats")
-        latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
+        latest_s = df_simon.dropna(subset=["weight"])[-1]["weight"]
         loss_s = simon_start_weight - latest_s
         loss_pct_s = 100 * loss_s / simon_start_weight
         st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
