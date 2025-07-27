@@ -95,10 +95,19 @@ st.plotly_chart(fig, use_container_width=True)
 # --- Responsive layout with custom CSS ---
 st.markdown("""
 <style>
+/* Reduce font size for mobile devices */
 @media (max-width: 768px) {
     .mobile-column {
         display: block !important;
         width: 100% !important;
+    }
+    .mobile-column .element-container h3,
+    .mobile-column .element-container div[data-testid="stMetric"] {
+        font-size: 16px !important;
+    }
+    .mobile-column .element-container .stMetricLabel,
+    .mobile-column .element-container .stMetricValue {
+        font-size: 14px !important;
     }
 }
 </style>
