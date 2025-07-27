@@ -13,19 +13,17 @@ db = firestore.client()
 
 # --- Load Data from Firestore ---
 def load_data(user: str) -> pd.DataFrame:
-    docs = db.collection("users").document(user).collection("weights").stream()
+    docs = db.collection("users").document(user).collection("weight_data").stream()
     records = []
     for doc in docs:
         entry = doc.to_dict()
-        entry["date"] = doc.id  # assumes date is in document ID
+        entry["date"] = doc.id  # doc ID is the date string
         records.append(entry)
 
     df = pd.DataFrame(records)
-
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"])
         df = df.sort_values("date")
-
     return df
 
 # Load user data

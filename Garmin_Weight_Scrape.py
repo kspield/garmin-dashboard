@@ -225,12 +225,11 @@ if api:
             logger.info(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
 
             # Save or update in Firebase
-            doc_ref = db.collection(collection_name).document(date.isoformat())
+            doc_ref = db.collection("users").document("kevin").collection("weight_data").document(date.isoformat())
             doc_ref.set({
-                "date": date.isoformat(),
                 "weight": weight,
                 "bodyFat": body_fat
-                            })
+            })
 
         print("✅ Data uploaded to Firebase.")
 
