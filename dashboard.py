@@ -50,6 +50,30 @@ else:
 st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
 st.title("Fat Boy Slim Competition")
 
+# --- Date Filter Selection ---
+time_range = st.radio(
+    "Select Time Range:",
+    options=["This Week", "This Month", "Last 30 Days", "Full Timeline"],
+    index=3,  # Default: Full Timeline
+    horizontal=True
+)
+
+# --- Apply Date Filter ---
+today = pd.Timestamp.today()
+if time_range == "This Week":
+    start_filter = today - pd.Timedelta(days=today.weekday())  # Monday
+elif time_range == "This Month":
+    start_filter = today.replace(day=1)
+elif time_range == "Last 30 Days":
+    start_filter = today - pd.Timedelta(days=30)
+else:
+    start_filter = None  # Show full range
+
+if start_filter is not None:
+    df_kevin = df_kevin[df_kevin["date"] >= start_filter]
+    if simon_available:
+        df_simon = df_simon[df_simon["date"] >= start_filter]
+
 # --- Constants ---
 kevin_start_weight = 79
 goal_start_date = datetime.datetime(2025, 7, 24)
@@ -156,9 +180,10 @@ y1_range, y2_range = aligned_ranges(
 )
 
 # --- X-axis range ---
-min_date = min(
-    df_kevin["date"].min(),
-    df_simon["date"].min() if simon_available and not df_simon.empty else goal_start_date
+min_date = (
+    min(df_kevin["date"].min(), df_simon["date"].min())
+    if simon_available and not df_simon.empty
+    else df_kevin["date"].min()
 )
 
 # --- Layout ---
