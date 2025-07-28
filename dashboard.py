@@ -59,7 +59,7 @@ time_range = st.radio(
 )
 
 # --- Constants ---
-kevin_start_weight = 79
+kevin_start_weight = 78
 goal_start_date = datetime.datetime(2025, 7, 24)
 goal_end_date = datetime.datetime(2025, 12, 25)
 
