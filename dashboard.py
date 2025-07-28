@@ -83,63 +83,74 @@ if simon_available and simon_start_weight is not None:
 # --- Plot ---
 fig = go.Figure()
 
-fig.add_trace(go.Scatter(x=df_kevin["date"], y=df_kevin["weight"],
-                         mode="lines+markers", name="Kevin", yaxis="y1",connectgaps=True))
-fig.add_trace(go.Scatter(x=goal_dates_kevin, y=kevin_goal_weights,
-                         mode="lines", name="Goal Trendline", line=dict(dash="dot", color="gray"), yaxis="y1"))
+fig.add_trace(go.Scatter(
+    x=df_kevin["date"], y=df_kevin["weight"],
+    mode="lines+markers", name="Kevin", yaxis="y1", connectgaps=True
+))
+
+fig.add_trace(go.Scatter(
+    x=goal_dates_kevin, y=kevin_goal_weights,
+    mode="lines", name="Goal Trendline",
+    line=dict(dash="dot", color="gray"), yaxis="y1"
+))
 
 if simon_available:
-    fig.add_trace(go.Scatter(x=df_simon["date"], y=df_simon["weight"],
-                             mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green"), connectgaps=True))
-    fig.add_trace(go.Scatter(x=goal_dates_simon, y=simon_goal_weights,
-                             mode="lines", showlegend=False, line=dict(dash="dot", color="gray"), yaxis="y2"))
+    fig.add_trace(go.Scatter(
+        x=df_simon["date"], y=df_simon["weight"],
+        mode="lines+markers", name="Simon", yaxis="y2",
+        line=dict(color="green"), connectgaps=True
+    ))
+    fig.add_trace(go.Scatter(
+        x=goal_dates_simon, y=simon_goal_weights,
+        mode="lines", showlegend=False,
+        line=dict(dash="dot", color="gray"), yaxis="y2"
+    ))
 
-# --- Axis and Layout ---
+# --- Synchronized Y-axis Scaling ---
+def align_dual_axes(reference_weight, ref_data, ref_goals, target_weight):
+    """Return (ref_range, target_range) so goal lines align visually."""
+    combined = pd.concat([ref_data, pd.Series(ref_goals)])
+    ref_min, ref_max = combined.min(), combined.max()
+    margin = (ref_max - ref_min) * 0.05
+    ref_range = [ref_min - margin, ref_max + margin]
 
-def compute_axis_range(data_series, goal_series, margin_ratio=0.05):
-    """Returns dynamic [min, max] range with margin based on combined data and goal."""
-    combined = pd.concat([data_series, pd.Series(goal_series)])
-    data_min, data_max = combined.min(), combined.max()
-    margin = (data_max - data_min) * margin_ratio
-    return [data_min - margin, data_max + margin]
+    # Find normalized goal position on ref axis (0 = bottom, 1 = top)
+    norm_pos = (reference_weight - ref_range[0]) / (ref_range[1] - ref_range[0])
 
-# Dynamic Y-axis ranges
-y1_range = compute_axis_range(df_kevin["weight"], kevin_goal_weights)
-y2_range = compute_axis_range(df_simon["weight"], simon_goal_weights) if simon_available else None
+    # Target range so target_weight falls at same relative position
+    target_range_total = target_weight / (1 - norm_pos) if norm_pos < 1 else 1
+    target_min = target_weight - target_range_total * norm_pos
+    target_max = target_weight + target_range_total * (1 - norm_pos)
+    return ref_range, [target_min, target_max]
 
+y1_range, y2_range = align_dual_axes(
+    kevin_start_weight, df_kevin["weight"], kevin_goal_weights,
+    simon_start_weight if simon_available else 1
+) if simon_available else (compute_axis_range(df_kevin["weight"], kevin_goal_weights), None)
+
+# --- X-axis Range ---
 min_date = min(
     df_kevin["date"].min(),
     df_simon["date"].min() if simon_available and not df_simon.empty else goal_start_date
 )
 
+# --- Layout ---
 fig.update_layout(
     yaxis=dict(
-        title="Kevin",
-        side="left",
-        range=y1_range,
-        showgrid=True
+        title="Kevin", side="left", range=y1_range, showgrid=True
     ),
     yaxis2=dict(
-        title="Simon",
-        overlaying="y",
-        side="right",
-        range=y2_range if y2_range else None,
-        showgrid=True,
-        matches='y'  # Align ticks/gridlines with yaxis
-    ),
+        title="Simon", overlaying="y", side="right",
+        range=y2_range, showgrid=True, matches="y"
+    ) if simon_available else {},
     xaxis=dict(
-        title="Date",
-        range=[min_date, goal_end_date]
+        title="Date", range=[min_date, goal_end_date]
     ),
     legend=dict(
-        x=0.99, y=0.01,
-        xanchor="right", yanchor="bottom",
-        bgcolor="rgba(255,255,255,0.7)",
-        bordercolor="black", borderwidth=1
+        x=0.99, y=0.01, xanchor="right", yanchor="bottom",
+        bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1
     )
 )
-
-
 st.plotly_chart(fig, use_container_width=True)
 
 # --- Show message if Simon's data is missing or invalid ---
