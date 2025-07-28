@@ -55,10 +55,11 @@ goal_start_date = datetime.datetime(2025, 7, 24)
 goal_end_date = datetime.datetime(2025, 12, 25)
 kevin_range_padding = 1
 
-# Default fallback if no data is available
+# --- Default fallback if no data is available ---
 simon_start_weight = None
+goal_dates_simon, simon_goal_weights = [], []
 
-if not df_simon.empty:
+if simon_available and not df_simon.empty and "weight" in df_simon.columns:
     # Find the entry closest to the defined start date
     df_simon["days_diff"] = (df_simon["date"] - goal_start_date).abs()
     closest_row = df_simon.loc[df_simon["days_diff"].idxmin()]
@@ -75,10 +76,12 @@ kevin_start_date = goal_start_date
 goal_dates_kevin, kevin_goal_weights = compute_goal_weights(kevin_start_weight, kevin_start_date)
 kevin_goal_weight = kevin_goal_weights[-1]
 
-if simon_available and simon_start_weight is not None:
+if simon_start_weight is not None:
     simon_start_date = goal_start_date
     goal_dates_simon, simon_goal_weights = compute_goal_weights(simon_start_weight, simon_start_date)
     simon_goal_weight = simon_goal_weights[-1]
+else:
+    simon_goal_weight = None  # Optional for later safety
 
 # --- Plot ---
 fig = go.Figure()
