@@ -197,7 +197,7 @@ x_range = [x_min.normalize(), x_max.normalize()]
 
 # --- Layout ---
 fig.update_layout(
-    height=600,
+    height=500,
     yaxis=dict(
         title="Kevin",
         side="left",
