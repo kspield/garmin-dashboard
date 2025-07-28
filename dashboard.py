@@ -58,22 +58,6 @@ time_range = st.radio(
     horizontal=True
 )
 
-# --- Apply Date Filter ---
-today = pd.Timestamp.today()
-if time_range == "This Week":
-    start_filter = today - pd.Timedelta(days=today.weekday())  # Monday
-elif time_range == "This Month":
-    start_filter = today.replace(day=1)
-elif time_range == "Last 30 Days":
-    start_filter = today - pd.Timedelta(days=30)
-else:
-    start_filter = None  # Show full range
-
-if start_filter is not None:
-    df_kevin = df_kevin[df_kevin["date"] >= start_filter]
-    if simon_available:
-        df_simon = df_simon[df_simon["date"] >= start_filter]
-
 # --- Constants ---
 kevin_start_weight = 79
 goal_start_date = datetime.datetime(2025, 7, 24)
@@ -186,6 +170,22 @@ min_date = (
     else df_kevin["date"].min()
 )
 
+today = pd.Timestamp.today()
+
+if time_range == "This Week":
+    x_min = today - pd.Timedelta(days=today.weekday())  # Monday of current week
+elif time_range == "This Month":
+    x_min = today.replace(day=1)
+elif time_range == "Last 30 Days":
+    x_min = today - pd.Timedelta(days=30)
+else:
+    x_min = min(
+        df_kevin["date"].min(),
+        df_simon["date"].min() if simon_available and not df_simon.empty else df_kevin["date"].min()
+    )
+
+x_range = [x_min, goal_end_date]
+
 # --- Layout ---
 fig.update_layout(
     yaxis=dict(
@@ -197,7 +197,7 @@ fig.update_layout(
     ),
     xaxis=dict(
         title="Date",
-        range=[min_date, goal_end_date]
+        range=x_range
     ),
     legend=dict(
         x=0.99, y=0.01, xanchor="right", yanchor="bottom",
