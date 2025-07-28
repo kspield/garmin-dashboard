@@ -15,23 +15,32 @@ db = firestore.client()
 def load_data(user: str) -> pd.DataFrame:
     docs = db.collection("users").document(user).collection("weight_data").stream()
     records = []
+
     for doc in docs:
-        entry = doc.to_dict()
-        date_str = entry.get("date", doc.id)  # Use 'date' field if present, else fallback to document ID
-        try:
-            entry["date"] = pd.to_datetime(date_str)
-            records.append(entry)
-        except Exception as e:
-            st.warning(f"Skipping record with invalid date: {date_str} – {e}")
+        doc_id = doc.id  # Date
+        data = doc.to_dict()
+
+        if user == "kevin":
+            weight = data.get("weight")
+            body_fat = data.get("bodyFat")
+            records.append({"date": doc_id, "weight": weight, "bodyFat": body_fat})
+
+        elif user == "simon":
+            entries = data.get("entries", [])
+            if entries:
+                weights = [e.get("weight") for e in entries if e.get("weight") is not None]
+                fats = [e.get("bodyFat") for e in entries if e.get("bodyFat") is not None]
+                if weights:
+                    records.append({
+                        "date": doc_id,
+                        "weight": sum(weights) / len(weights),
+                        "bodyFat": sum(fats) / len(fats) if fats else None
+                    })
 
     df = pd.DataFrame(records)
-
     if not df.empty:
-        df = df.dropna(subset=["date", "weight"])
-        df = df.groupby("date", as_index=False).agg({
-            "weight": "mean",
-            "bodyFat": "mean"
-        }).sort_values("date")
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
 
     return df
 
@@ -121,6 +130,23 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
+# --- Show message if Simon's data is missing or invalid ---
+if simon_available and simon_start_weight is None:
+    st.markdown(
+        "<div style='color: red; font-size: 16px; margin-top: 20px;'>"
+        "⚠️ No suitable starting weight found for Simon near the defined start date. "
+        "Simon’s trendline and statistics may be unavailable until data is entered."
+        "</div>",
+        unsafe_allow_html=True
+    )
+elif not simon_available:
+    st.markdown(
+        "<div style='color: orange; font-size: 16px; margin-top: 20px;'>"
+        "ℹ️ No data available for Simon yet. Please enter weight data to begin tracking."
+        "</div>",
+        unsafe_allow_html=True
+    )
+
 
 # --- Simon Manual Entry Section ---
 st.subheader("Manual Weight Entry for Simon")
@@ -135,17 +161,29 @@ with st.form("simon_data_entry"):
     if submitted:
         try:
             date_str = date.isoformat()
+            now_iso = datetime.datetime.now().isoformat()
             body_fat_cleaned = None if body_fat == 0.0 else round(body_fat, 1)
             weight_cleaned = round(weight, 2)
 
-            # Use timestamp or a UUID to avoid overwriting
-            doc_ref = db.collection("users").document("simon").collection("weight_data").document()
-            doc_ref.set({
-                "date": date_str,
+            doc_ref = db.collection("users").document("simon").collection("weight_data").document(date_str)
+            doc = doc_ref.get()
+
+            new_entry = {
                 "weight": weight_cleaned,
-                "bodyFat": body_fat_cleaned
-            })
+                "bodyFat": body_fat_cleaned,
+                "timestamp": now_iso,
+            }
+
+            if doc.exists:
+                existing_data = doc.to_dict()
+                entries = existing_data.get("entries", [])
+                entries.append(new_entry)
+            else:
+                entries = [new_entry]
+
+            doc_ref.set({"entries": entries})
             st.success(f"✅ Entry saved for {date_str} in Firestore")
+
         except Exception as e:
             st.error(f"❌ Failed to save data: {e}")
 
@@ -189,6 +227,6 @@ if simon_available and simon_start_weight is not None:
 
 if simon_available and simon_start_weight is None:
     st.warning("Simon's starting weight could not be determined. No data near the goal start date.")
-    
+
 st.markdown('</div>', unsafe_allow_html=True)
 
