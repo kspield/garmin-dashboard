@@ -189,7 +189,7 @@ else:
     )
     x_max = goal_end_date
 
-x_range = [x_min, x_max]
+x_range = [x_min.normalize(), x_max.normalize()]
 
 # --- Layout ---
 fig.update_layout(
