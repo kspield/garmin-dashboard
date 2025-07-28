@@ -90,7 +90,10 @@ fig.add_trace(go.Scatter(
 
 fig.add_trace(go.Scatter(
     x=goal_dates_kevin, y=kevin_goal_weights,
-    mode="lines", name="Kevin Goal", line=dict(dash="dot", color="gray"), yaxis="y1"
+    mode="lines", name="Goal Trendline",
+    line=dict(dash="dot", color="gray"),
+    yaxis="y1",
+    showlegend=True
 ))
 
 if simon_available:
@@ -98,9 +101,14 @@ if simon_available:
         x=df_simon["date"], y=df_simon["weight"],
         mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green"), connectgaps=True
     ))
+
+    # Simon goal trendline — do NOT include in legend
     fig.add_trace(go.Scatter(
         x=goal_dates_simon, y=simon_goal_weights,
-        mode="lines", name="Simon Goal", line=dict(dash="dot", color="gray"), yaxis="y2"
+        mode="lines",
+        line=dict(dash="dot", color="gray"),
+        yaxis="y2",
+        showlegend=False  # hide from legend
     ))
 
 # --- Utility: Aligned Axis Ranges ---
