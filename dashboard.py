@@ -151,7 +151,7 @@ def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
 
 y1_range, y2_range = aligned_ranges(
     kevin_goal_weights, df_kevin["weight"],
-    simon_goal_weights, df_simon["weight"] if simon_available else pd.Series()
+    simon_goal_weights, df_simon["weight"] if simon_available and not df_simon.empty else pd.Series()
 )
 
 # --- X-axis range ---
@@ -161,23 +161,13 @@ min_date = min(
 )
 
 # --- Layout ---
-fig.update_layout(
+layout_config = dict(
     yaxis=dict(
         title="Kevin",
         side="left",
         range=y1_range,
         showgrid=True,
         tickformat=".1f"
-    ),
-    yaxis2=dict(
-        title="Simon",
-        overlaying="y",
-        side="right",
-        range=y2_range,
-        showgrid=False,
-        tickformat=".1f",
-        anchor="x",
-        matches=None  # ensure independence
     ),
     xaxis=dict(
         title="Date",
@@ -188,6 +178,21 @@ fig.update_layout(
         bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1
     )
 )
+
+# Add yaxis2 config only if y2_range exists (i.e., Simon data is valid)
+if y2_range is not None:
+    layout_config["yaxis2"] = dict(
+        title="Simon",
+        overlaying="y",
+        side="right",
+        range=y2_range,
+        showgrid=False,
+        tickformat=".1f",
+        anchor="x"
+    )
+
+# Apply the layout
+fig.update_layout(**layout_config)
 st.plotly_chart(fig, use_container_width=True)
 
 # --- Show message if Simon's data is missing or invalid ---
