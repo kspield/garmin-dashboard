@@ -119,6 +119,10 @@ def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
     margin1 = (max1 - min1) * margin_ratio
     y1_min, y1_max = min1 - margin1, max1 + margin1
 
+    # If Simon has no data or goal, return only y1
+    if goal2 is None or len(goal2) == 0 or data2 is None or data2.empty:
+        return [y1_min, y1_max], None
+
     # Position of Kevin's goal line in y1 range
     goal1_value = goal1[-1]
     norm_goal_y1 = (goal1_value - y1_min) / (y1_max - y1_min)
@@ -138,7 +142,8 @@ def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
 
 y1_range, y2_range = aligned_ranges(
     kevin_goal_weights, df_kevin["weight"],
-    simon_goal_weights, df_simon["weight"] if simon_available else pd.Series()
+    simon_goal_weights if simon_goal_weights else None,
+    df_simon["weight"] if simon_available and not df_simon.empty else None
 )
 
 # --- X-axis range ---
@@ -156,16 +161,6 @@ fig.update_layout(
         showgrid=True,
         tickformat=".1f"
     ),
-    yaxis2=dict(
-        title="Simon",
-        overlaying="y",
-        side="right",
-        range=y2_range,
-        showgrid=False,
-        tickformat=".1f",
-        anchor="x",
-        matches=None  # ensure independence
-    ),
     xaxis=dict(
         title="Date",
         range=[min_date, goal_end_date]
@@ -175,6 +170,21 @@ fig.update_layout(
         bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1
     )
 )
+
+if y2_range is not None:
+    fig.update_layout(
+        yaxis2=dict(
+            title="Simon",
+            overlaying="y",
+            side="right",
+            range=y2_range,
+            showgrid=False,
+            tickformat=".1f",
+            anchor="x",
+            matches=None
+        )
+    )
+
 st.plotly_chart(fig, use_container_width=True)
 
 # --- Show message if Simon's data is missing or invalid ---
