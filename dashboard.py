@@ -105,29 +105,26 @@ if simon_available:
 
 # --- Utility: Aligned Axis Ranges ---
 def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
-    """
-    Compute axis ranges so that goal1 and goal2 appear at same height.
-    Allows different y1/y2 scaling.
-    """
-    # 1. Dynamic range for y1 (Kevin)
+    # Y1 range: Kevin
     all1 = pd.concat([data1, pd.Series(goal1)])
     min1, max1 = all1.min(), all1.max()
     margin1 = (max1 - min1) * margin_ratio
     y1_min, y1_max = min1 - margin1, max1 + margin1
 
-    # 2. Normalize Kevin's goal position
-    norm_goal_pos = (kevin_start_weight - y1_min) / (y1_max - y1_min)
+    # Position of Kevin's goal line in y1 range
+    goal1_value = goal1[-1]
+    norm_goal_y1 = (goal1_value - y1_min) / (y1_max - y1_min)
 
-    # 3. Match Simon's goal to same position
-    simon_data = pd.concat([data2, pd.Series(goal2)])
-    simon_min_raw, simon_max_raw = simon_data.min(), simon_data.max()
-    simon_range_total = (simon_max_raw - simon_min_raw) or 1
-    simon_margin = simon_range_total * margin_ratio
+    # Y2 range: Simon
+    all2 = pd.concat([data2, pd.Series(goal2)])
+    goal2_value = goal2[-1]
+    range2_span = all2.max() - all2.min()
+    margin2 = range2_span * margin_ratio
 
-    # Compute total range needed so that Simon's goal appears at same relative height
-    simon_total_range = simon_start_weight / (norm_goal_pos or 1)
-    y2_min = simon_start_weight - simon_total_range * norm_goal_pos
-    y2_max = simon_start_weight + simon_total_range * (1 - norm_goal_pos)
+    # Now shift y2 range so that Simon's goal appears at the same relative height
+    y2_total_range = (all2.max() - all2.min()) + 2 * margin2
+    y2_min = goal2_value - norm_goal_y1 * y2_total_range
+    y2_max = goal2_value + (1 - norm_goal_y1) * y2_total_range
 
     return [y1_min, y1_max], [y2_min, y2_max]
 
@@ -158,8 +155,8 @@ fig.update_layout(
         range=y2_range,
         showgrid=False,
         tickformat=".1f",
-        anchor="x",  # Ensures it shares x-axis only, not y
-        matches=None  # Crucial: breaks axis synchronization
+        anchor="x",
+        matches=None  # ensure independence
     ),
     xaxis=dict(
         title="Date",
