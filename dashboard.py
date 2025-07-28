@@ -57,9 +57,9 @@ st.title("Fat Boy Slim Competition")
 
 # --- Constants ---
 kevin_start_weight, simon_start_weight = 79, 100
-goal_end_date = datetime.datetime(2025, 12, 25)
 goal_start_date = datetime.datetime(2025, 7, 25)
-kevin_range_padding = 3
+goal_end_date = datetime.datetime(2025, 12, 25)
+kevin_range_padding = 1
 
 # --- Goal Computation ---
 def compute_goal_weights(start_weight, start_date):
