@@ -225,8 +225,10 @@ if api:
             logger.info(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
 
             # Save or update in Firebase
-            doc_ref = db.collection("users").document("kevin").collection("weight_data").document(date.isoformat())
+            date_str = date.isoformat()  # <-- Add this line
+            doc_ref = db.collection("users").document("kevin").collection("weight_data").document(date_str)
             doc_ref.set({
+                "date": date_str,
                 "weight": weight,
                 "bodyFat": body_fat
             })
