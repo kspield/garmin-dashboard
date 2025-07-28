@@ -95,23 +95,45 @@ if simon_available:
                              mode="lines", showlegend=False, line=dict(dash="dot", color="gray"), yaxis="y2"))
 
 # --- Axis and Layout ---
+
+def compute_axis_range(data_series, goal_series, margin_ratio=0.05):
+    """Returns dynamic [min, max] range with margin based on combined data and goal."""
+    combined = pd.concat([data_series, pd.Series(goal_series)])
+    data_min, data_max = combined.min(), combined.max()
+    margin = (data_max - data_min) * margin_ratio
+    return [data_min - margin, data_max + margin]
+
+# Dynamic Y-axis ranges
+y1_range = compute_axis_range(df_kevin["weight"], kevin_goal_weights)
+y2_range = compute_axis_range(df_simon["weight"], simon_goal_weights) if simon_available else None
+
 fig.update_layout(
-    yaxis=dict(title="Kevin", side="left", range=[
-        kevin_goal_weight - kevin_range_padding,
-        kevin_start_weight + kevin_range_padding
-    ]),
-    yaxis2=dict(title="Simon", overlaying="y", side="right", showgrid=False,
-                range=[
-                    simon_goal_weight - kevin_range_padding * (simon_start_weight / kevin_start_weight),
-                    simon_start_weight + kevin_range_padding * (simon_start_weight / kevin_start_weight),
-                ] if simon_available else None),
-    legend=dict(x=0.99, y=0.01, xanchor="right", yanchor="bottom",
-                bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1),
-    xaxis=dict(title="Date", range=[
-        min(kevin_start_date, df_simon["date"].min() if simon_available else kevin_start_date),
-        goal_end_date
-    ])
+    yaxis=dict(
+        title="Kevin",
+        side="left",
+        range=y1_range,
+        showgrid=True
+    ),
+    yaxis2=dict(
+        title="Simon",
+        overlaying="y",
+        side="right",
+        range=y2_range if y2_range else None,
+        showgrid=True,
+        matches='y'  # Align ticks/gridlines with yaxis
+    ),
+    xaxis=dict(
+        title="Date",
+        range=[min_date, goal_end_date]
+    ),
+    legend=dict(
+        x=0.99, y=0.01,
+        xanchor="right", yanchor="bottom",
+        bgcolor="rgba(255,255,255,0.7)",
+        bordercolor="black", borderwidth=1
+    )
 )
+
 
 st.plotly_chart(fig, use_container_width=True)
 
