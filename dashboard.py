@@ -55,11 +55,10 @@ goal_start_date = datetime.datetime(2025, 7, 24)
 goal_end_date = datetime.datetime(2025, 12, 25)
 kevin_range_padding = 1
 
-# --- Default fallback if no data is available ---
+# Default fallback if no data is available
 simon_start_weight = None
-goal_dates_simon, simon_goal_weights = [], []
 
-if simon_available and not df_simon.empty and "weight" in df_simon.columns:
+if not df_simon.empty:
     # Find the entry closest to the defined start date
     df_simon["days_diff"] = (df_simon["date"] - goal_start_date).abs()
     closest_row = df_simon.loc[df_simon["days_diff"].idxmin()]
@@ -76,12 +75,10 @@ kevin_start_date = goal_start_date
 goal_dates_kevin, kevin_goal_weights = compute_goal_weights(kevin_start_weight, kevin_start_date)
 kevin_goal_weight = kevin_goal_weights[-1]
 
-if simon_start_weight is not None:
+if simon_available and simon_start_weight is not None:
     simon_start_date = goal_start_date
     goal_dates_simon, simon_goal_weights = compute_goal_weights(simon_start_weight, simon_start_date)
     simon_goal_weight = simon_goal_weights[-1]
-else:
-    simon_goal_weight = None  # Optional for later safety
 
 # --- Plot ---
 fig = go.Figure()
@@ -115,52 +112,34 @@ if simon_available:
     ))
 
 # --- Utility: Aligned Axis Ranges ---
-def aligned_ranges(data1, goal1_value, data2, goal2_value, margin_ratio=0.05):
-    # --- Kevin Y1 ---
-    data1_min = data1.min()
-    data1_max = data1.max()
-    range1 = data1_max - data1_min if data1_max > data1_min else 1
-    margin1 = range1 * margin_ratio
-    y1_min = data1_min - margin1
-    y1_max = data1_max + margin1
-    y1_range = [y1_min, y1_max]
+def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
+    # Y1 range: Kevin
+    all1 = pd.concat([data1, pd.Series(goal1)])
+    min1, max1 = all1.min(), all1.max()
+    margin1 = (max1 - min1) * margin_ratio
+    y1_min, y1_max = min1 - margin1, max1 + margin1
 
-    # --- Normalized vertical goal position for Kevin ---
-    norm_pos = (goal1_value - y1_min) / (y1_max - y1_min)
+    # Position of Kevin's goal line in y1 range
+    goal1_value = goal1[-1]
+    norm_goal_y1 = (goal1_value - y1_min) / (y1_max - y1_min)
 
-    # --- Simon Y2 ---
-    if data2.empty or goal2_value is None:
-        return y1_range, None
+    # Y2 range: Simon
+    all2 = pd.concat([data2, pd.Series(goal2)])
+    goal2_value = goal2[-1]
+    range2_span = all2.max() - all2.min()
+    margin2 = range2_span * margin_ratio
 
-    data2_min = data2.min()
-    data2_max = data2.max()
-    range2 = data2_max - data2_min if data2_max > data2_min else 1
-    margin2 = range2 * margin_ratio
+    # Now shift y2 range so that Simon's goal appears at the same relative height
+    y2_total_range = (all2.max() - all2.min()) + 2 * margin2
+    y2_min = goal2_value - norm_goal_y1 * y2_total_range
+    y2_max = goal2_value + (1 - norm_goal_y1) * y2_total_range
 
-    # Desired full range for Simon so goal appears at same position
-    simon_total_range = goal2_value / max(norm_pos, 1e-6)  # avoid divide by zero
-
-    y2_min = goal2_value - simon_total_range * norm_pos
-    y2_max = goal2_value + simon_total_range * (1 - norm_pos)
-
-    # Enforce margin and full visibility of Simon’s data
-    y2_min = min(y2_min, data2_min - margin2)
-    y2_max = max(y2_max, data2_max + margin2)
-
-    y2_range = [y2_min, y2_max]
-    return y1_range, y2_range
+    return [y1_min, y1_max], [y2_min, y2_max]
 
 y1_range, y2_range = aligned_ranges(
-    df_kevin["weight"],
-    kevin_goal_weights[-1],
-    df_simon["weight"] if simon_available and not df_simon.empty else pd.Series(dtype=float),
-    simon_goal_weights[-1] if simon_start_weight is not None else None
+    kevin_goal_weights, df_kevin["weight"],
+    simon_goal_weights, df_simon["weight"] if simon_available else pd.Series()
 )
-
-if y2_range:
-    print(f"Y1 range: {y1_range}")
-    print(f"Y2 range: {y2_range}")
-    print(f"Kevin goal: {kevin_goal_weights[-1]} | Simon goal: {simon_goal_weights[-1]}")
 
 # --- X-axis range ---
 min_date = min(
@@ -169,13 +148,23 @@ min_date = min(
 )
 
 # --- Layout ---
-layout_config = dict(
+fig.update_layout(
     yaxis=dict(
         title="Kevin",
         side="left",
         range=y1_range,
         showgrid=True,
         tickformat=".1f"
+    ),
+    yaxis2=dict(
+        title="Simon",
+        overlaying="y",
+        side="right",
+        range=y2_range,
+        showgrid=False,
+        tickformat=".1f",
+        anchor="x",
+        matches=None  # ensure independence
     ),
     xaxis=dict(
         title="Date",
@@ -186,21 +175,6 @@ layout_config = dict(
         bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1
     )
 )
-
-# Add yaxis2 config only if y2_range exists (i.e., Simon data is valid)
-if y2_range is not None:
-    layout_config["yaxis2"] = dict(
-        title="Simon",
-        overlaying="y",
-        side="right",
-        range=y2_range,
-        showgrid=False,
-        tickformat=".1f",
-        anchor="x"
-    )
-
-# Apply the layout
-fig.update_layout(**layout_config)
 st.plotly_chart(fig, use_container_width=True)
 
 # --- Show message if Simon's data is missing or invalid ---
