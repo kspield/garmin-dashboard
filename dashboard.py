@@ -183,6 +183,7 @@ with st.form("simon_data_entry"):
 
             doc_ref.set({"entries": entries})
             st.success(f"✅ Entry saved for {date_str} in Firestore")
+            st.experimental_rerun()
 
         except Exception as e:
             st.error(f"❌ Failed to save data: {e}")
