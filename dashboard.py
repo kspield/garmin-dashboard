@@ -157,8 +157,10 @@ fig.update_layout(
         side="right",
         range=y2_range,
         showgrid=False,
-        tickformat=".1f"
-    ) if simon_available else {},
+        tickformat=".1f",
+        anchor="x",  # Ensures it shares x-axis only, not y
+        matches=None  # Crucial: breaks axis synchronization
+    ),
     xaxis=dict(
         title="Date",
         range=[min_date, goal_end_date]
