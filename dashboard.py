@@ -120,7 +120,7 @@ def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
     Compute axis ranges so that goal1 and goal2 appear at same height.
     Allows different y1/y2 scaling.
     """
-    if not goal2 or data2.empty:
+    if len(goal2) == 0 or data2.empty:
         # If no goal/data for Simon, fallback to y1 range only
         all1 = pd.concat([data1, pd.Series(goal1)])
         min1, max1 = all1.min(), all1.max()
