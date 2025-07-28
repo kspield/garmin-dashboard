@@ -142,7 +142,7 @@ def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
 
 y1_range, y2_range = aligned_ranges(
     kevin_goal_weights, df_kevin["weight"],
-    simon_goal_weights if simon_goal_weights else None,
+    simon_goal_weights if simon_goal_weights is not None and len(simon_goal_weights) > 0 else None,
     df_simon["weight"] if simon_available and not df_simon.empty else None
 )
 
