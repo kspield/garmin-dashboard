@@ -115,19 +115,29 @@ if simon_available:
     ))
 
 # --- Utility: Aligned Axis Ranges ---
-def aligned_ranges(goal1, data1, goal2, data2, goal1_value, goal2_value, margin_ratio=0.05):
-    # Kevin's axis range
-    all1 = pd.concat([data1, pd.Series(goal1)])
-    min1, max1 = all1.min(), all1.max()
-    margin1 = (max1 - min1) * margin_ratio
-    y1_min, y1_max = min1 - margin1, max1 + margin1
+def aligned_ranges(data1, goal1_value, data2, goal2_value, margin_ratio=0.05):
+    # --- Kevin axis (y1) ---
+    min1 = data1.min()
+    max1 = data1.max()
+    margin1 = (max1 - min1) * margin_ratio if max1 > min1 else 1
+    y1_min = min1 - margin1
+    y1_max = max1 + margin1
     y1_range = [y1_min, y1_max]
 
-    # Goal position as relative height (0–1) on y1
+    # --- Normalize Kevin's goal position (0–1 relative) ---
     norm_goal_pos = (goal1_value - y1_min) / (y1_max - y1_min)
 
-    # Simon's axis: compute full range needed to place his goal at same relative height
-    simon_range_total = goal2_value / (norm_goal_pos or 1e-6)  # avoid divide by zero
+    # --- Simon axis (y2) ---
+    if data2.empty or goal2_value is None:
+        return y1_range, None
+
+    simon_data_min = data2.min()
+    simon_data_max = data2.max()
+    simon_margin = (simon_data_max - simon_data_min) * margin_ratio if simon_data_max > simon_data_min else 1
+
+    # Total span of Simon's axis so that his goal aligns with Kevin's
+    simon_range_total = goal2_value / (norm_goal_pos or 1e-6)
+
     y2_min = goal2_value - simon_range_total * norm_goal_pos
     y2_max = goal2_value + simon_range_total * (1 - norm_goal_pos)
     y2_range = [y2_min, y2_max]
@@ -135,13 +145,16 @@ def aligned_ranges(goal1, data1, goal2, data2, goal1_value, goal2_value, margin_
     return y1_range, y2_range
 
 y1_range, y2_range = aligned_ranges(
-    kevin_goal_weights,
     df_kevin["weight"],
-    simon_goal_weights,
-    df_simon["weight"] if simon_available and not df_simon.empty else pd.Series(),
     kevin_goal_weights[-1],
-    simon_goal_weights[-1] if simon_start_weight is not None else 0
+    df_simon["weight"] if simon_available and not df_simon.empty else pd.Series(dtype=float),
+    simon_goal_weights[-1] if simon_start_weight is not None else None
 )
+
+if y2_range:
+    print(f"Y1 range: {y1_range}")
+    print(f"Y2 range: {y2_range}")
+    print(f"Kevin goal: {kevin_goal_weights[-1]} | Simon goal: {simon_goal_weights[-1]}")
 
 # --- X-axis range ---
 min_date = min(
