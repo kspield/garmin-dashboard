@@ -115,27 +115,32 @@ if simon_available:
     ))
 
 # --- Utility: Aligned Axis Ranges ---
-def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
-    # Kevin axis
+def aligned_ranges(goal1, data1, goal2, data2, goal1_value, goal2_value, margin_ratio=0.05):
+    # Kevin's axis range
     all1 = pd.concat([data1, pd.Series(goal1)])
-    y1_min, y1_max = all1.min(), all1.max()
-    y1_margin = (y1_max - y1_min) * margin_ratio
-    y1_range = [y1_min - y1_margin, y1_max + y1_margin]
+    min1, max1 = all1.min(), all1.max()
+    margin1 = (max1 - min1) * margin_ratio
+    y1_min, y1_max = min1 - margin1, max1 + margin1
+    y1_range = [y1_min, y1_max]
 
-    # Normalized goal position on Kevin axis
-    norm_pos = (kevin_start_weight - y1_range[0]) / (y1_range[1] - y1_range[0])
+    # Goal position as relative height (0–1) on y1
+    norm_goal_pos = (goal1_value - y1_min) / (y1_max - y1_min)
 
-    # Simon axis scaling
-    simon_total_range = simon_start_weight / norm_pos
-    y2_min = simon_start_weight - simon_total_range * norm_pos
-    y2_max = simon_start_weight + simon_total_range * (1 - norm_pos)
+    # Simon's axis: compute full range needed to place his goal at same relative height
+    simon_range_total = goal2_value / (norm_goal_pos or 1e-6)  # avoid divide by zero
+    y2_min = goal2_value - simon_range_total * norm_goal_pos
+    y2_max = goal2_value + simon_range_total * (1 - norm_goal_pos)
     y2_range = [y2_min, y2_max]
 
     return y1_range, y2_range
 
 y1_range, y2_range = aligned_ranges(
-    kevin_goal_weights, df_kevin["weight"],
-    simon_goal_weights, df_simon["weight"] if simon_available and not df_simon.empty else pd.Series()
+    kevin_goal_weights,
+    df_kevin["weight"],
+    simon_goal_weights,
+    df_simon["weight"] if simon_available and not df_simon.empty else pd.Series(),
+    kevin_goal_weights[-1],
+    simon_goal_weights[-1] if simon_start_weight is not None else 0
 )
 
 # --- X-axis range ---
