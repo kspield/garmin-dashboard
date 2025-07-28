@@ -15,33 +15,18 @@ db = firestore.client()
 def load_data(user: str) -> pd.DataFrame:
     docs = db.collection("users").document(user).collection("weight_data").stream()
     records = []
-
     for doc in docs:
-        doc_id = doc.id  # Date
-        data = doc.to_dict()
-
-        if user == "kevin":
-            weight = data.get("weight")
-            body_fat = data.get("bodyFat")
-            records.append({"date": doc_id, "weight": weight, "bodyFat": body_fat})
-
-        elif user == "simon":
-            entries = data.get("entries", [])
-            if entries:
-                weights = [e.get("weight") for e in entries if e.get("weight") is not None]
-                fats = [e.get("bodyFat") for e in entries if e.get("bodyFat") is not None]
-                if weights:
-                    records.append({
-                        "date": doc_id,
-                        "weight": sum(weights) / len(weights),
-                        "bodyFat": sum(fats) / len(fats) if fats else None
-                    })
+        entry = doc.to_dict()
+        if "date" in entry:
+            records.append(entry)
 
     df = pd.DataFrame(records)
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"])
-        df = df.sort_values("date")
-
+        df = df.groupby("date").agg({
+            "weight": "mean",
+            "bodyFat": "mean"
+        }).reset_index().sort_values("date")
     return df
 
 # Load user data
@@ -160,29 +145,33 @@ with st.form("simon_data_entry"):
 
     if submitted:
         try:
-            date_str = date.isoformat()
-            now_iso = datetime.datetime.now().isoformat()
+            date_str = date.isoformat()  # e.g., "2025-07-28"
             body_fat_cleaned = None if body_fat == 0.0 else round(body_fat, 1)
             weight_cleaned = round(weight, 2)
 
-            doc_ref = db.collection("users").document("simon").collection("weight_data").document(date_str)
-            doc = doc_ref.get()
+            # Get current UTC timestamp
+            timestamp = datetime.datetime.utcnow().isoformat()
 
-            new_entry = {
+            # Query existing entries for that day
+            collection_ref = db.collection("users").document("simon").collection("weight_data")
+            existing_docs = collection_ref.where("date", "==", date_str).stream()
+            count = sum(1 for _ in existing_docs)
+
+            # Create doc ID like "2025-07-28_1", "2025-07-28_2", ...
+            doc_id = f"{date_str}_{count + 1}"
+
+            doc_ref = collection_ref.document(doc_id)
+            doc_ref.set({
+                "date": date_str,
                 "weight": weight_cleaned,
                 "bodyFat": body_fat_cleaned,
-                "timestamp": now_iso,
-            }
+                "entryTime": timestamp
+            })
 
-            if doc.exists:
-                existing_data = doc.to_dict()
-                entries = existing_data.get("entries", [])
-                entries.append(new_entry)
-            else:
-                entries = [new_entry]
+            st.success(f"✅ Entry saved for {date_str} as #{count + 1}")
 
-            doc_ref.set({"entries": entries})
-            st.success(f"✅ Entry saved for {date_str} in Firestore")
+            if hasattr(st, "experimental_rerun"):
+                st.experimental_rerun()
 
         except Exception as e:
             st.error(f"❌ Failed to save data: {e}")
