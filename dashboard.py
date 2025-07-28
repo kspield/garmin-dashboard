@@ -62,6 +62,10 @@ time_range = st.radio(
 kevin_start_weight = 79
 goal_start_date = datetime.datetime(2025, 7, 24)
 goal_end_date = datetime.datetime(2025, 12, 25)
+
+# Convert to pandas.Timestamp and normalize
+goal_start_date = pd.to_datetime(goal_start_date).normalize()
+goal_end_date = pd.to_datetime(goal_end_date).normalize()
 kevin_range_padding = 1
 
 # Default fallback if no data is available
