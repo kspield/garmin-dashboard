@@ -116,32 +116,38 @@ if simon_available:
 
 # --- Utility: Aligned Axis Ranges ---
 def aligned_ranges(data1, goal1_value, data2, goal2_value, margin_ratio=0.05):
-    # --- Kevin axis (y1) ---
-    min1 = data1.min()
-    max1 = data1.max()
-    margin1 = (max1 - min1) * margin_ratio if max1 > min1 else 1
-    y1_min = min1 - margin1
-    y1_max = max1 + margin1
+    # --- Kevin Y1 ---
+    data1_min = data1.min()
+    data1_max = data1.max()
+    range1 = data1_max - data1_min if data1_max > data1_min else 1
+    margin1 = range1 * margin_ratio
+    y1_min = data1_min - margin1
+    y1_max = data1_max + margin1
     y1_range = [y1_min, y1_max]
 
-    # --- Normalize Kevin's goal position (0–1 relative) ---
-    norm_goal_pos = (goal1_value - y1_min) / (y1_max - y1_min)
+    # --- Normalized vertical goal position for Kevin ---
+    norm_pos = (goal1_value - y1_min) / (y1_max - y1_min)
 
-    # --- Simon axis (y2) ---
+    # --- Simon Y2 ---
     if data2.empty or goal2_value is None:
         return y1_range, None
 
-    simon_data_min = data2.min()
-    simon_data_max = data2.max()
-    simon_margin = (simon_data_max - simon_data_min) * margin_ratio if simon_data_max > simon_data_min else 1
+    data2_min = data2.min()
+    data2_max = data2.max()
+    range2 = data2_max - data2_min if data2_max > data2_min else 1
+    margin2 = range2 * margin_ratio
 
-    # Total span of Simon's axis so that his goal aligns with Kevin's
-    simon_range_total = goal2_value / (norm_goal_pos or 1e-6)
+    # Desired full range for Simon so goal appears at same position
+    simon_total_range = goal2_value / max(norm_pos, 1e-6)  # avoid divide by zero
 
-    y2_min = goal2_value - simon_range_total * norm_goal_pos
-    y2_max = goal2_value + simon_range_total * (1 - norm_goal_pos)
+    y2_min = goal2_value - simon_total_range * norm_pos
+    y2_max = goal2_value + simon_total_range * (1 - norm_pos)
+
+    # Enforce margin and full visibility of Simon’s data
+    y2_min = min(y2_min, data2_min - margin2)
+    y2_max = max(y2_max, data2_max + margin2)
+
     y2_range = [y2_min, y2_max]
-
     return y1_range, y2_range
 
 y1_range, y2_range = aligned_ranges(
