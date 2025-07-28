@@ -84,13 +84,13 @@ if simon_available and simon_start_weight is not None:
 fig = go.Figure()
 
 fig.add_trace(go.Scatter(x=df_kevin["date"], y=df_kevin["weight"],
-                         mode="lines+markers", name="Kevin", yaxis="y1"))
+                         mode="lines+markers", name="Kevin", yaxis="y1",connectgaps=True))
 fig.add_trace(go.Scatter(x=goal_dates_kevin, y=kevin_goal_weights,
                          mode="lines", name="Goal Trendline", line=dict(dash="dot", color="gray"), yaxis="y1"))
 
 if simon_available:
     fig.add_trace(go.Scatter(x=df_simon["date"], y=df_simon["weight"],
-                             mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green")))
+                             mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green"), connectgaps=True))
     fig.add_trace(go.Scatter(x=goal_dates_simon, y=simon_goal_weights,
                              mode="lines", showlegend=False, line=dict(dash="dot", color="gray"), yaxis="y2"))
 
