@@ -174,15 +174,20 @@ today = pd.Timestamp.today()
 
 if time_range == "This Week":
     x_min = today - pd.Timedelta(days=today.weekday())  # Monday of current week
+    x_max = today + pd.Timedelta(days=(6 - today.weekday()))
 elif time_range == "This Month":
     x_min = today.replace(day=1)
+    next_month = today.replace(day=28) + pd.Timedelta(days=4)
+    x_max = next_month - pd.Timedelta(days=next_month.day)  # Last day of month
 elif time_range == "Last 30 Days":
     x_min = today - pd.Timedelta(days=30)
+    x_max = today
 else:
     x_min = min(
         df_kevin["date"].min(),
         df_simon["date"].min() if simon_available and not df_simon.empty else df_kevin["date"].min()
     )
+    x_max = goal_end_date
 
 x_range = [x_min, goal_end_date]
 
