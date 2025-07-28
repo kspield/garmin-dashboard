@@ -90,45 +90,53 @@ fig.add_trace(go.Scatter(
 
 fig.add_trace(go.Scatter(
     x=goal_dates_kevin, y=kevin_goal_weights,
-    mode="lines", name="Goal Trendline",
-    line=dict(dash="dot", color="gray"), yaxis="y1"
+    mode="lines", name="Kevin Goal", line=dict(dash="dot", color="gray"), yaxis="y1"
 ))
 
 if simon_available:
     fig.add_trace(go.Scatter(
         x=df_simon["date"], y=df_simon["weight"],
-        mode="lines+markers", name="Simon", yaxis="y2",
-        line=dict(color="green"), connectgaps=True
+        mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green"), connectgaps=True
     ))
     fig.add_trace(go.Scatter(
         x=goal_dates_simon, y=simon_goal_weights,
-        mode="lines", showlegend=False,
-        line=dict(dash="dot", color="gray"), yaxis="y2"
+        mode="lines", name="Simon Goal", line=dict(dash="dot", color="gray"), yaxis="y2"
     ))
 
-# --- Synchronized Y-axis Scaling ---
-def align_dual_axes(reference_weight, ref_data, ref_goals, target_weight):
-    """Return (ref_range, target_range) so goal lines align visually."""
-    combined = pd.concat([ref_data, pd.Series(ref_goals)])
-    ref_min, ref_max = combined.min(), combined.max()
-    margin = (ref_max - ref_min) * 0.05
-    ref_range = [ref_min - margin, ref_max + margin]
+# --- Utility: Aligned Axis Ranges ---
+def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
+    """
+    Compute axis ranges so that goal1 and goal2 appear at same height.
+    Allows different y1/y2 scaling.
+    """
+    # 1. Dynamic range for y1 (Kevin)
+    all1 = pd.concat([data1, pd.Series(goal1)])
+    min1, max1 = all1.min(), all1.max()
+    margin1 = (max1 - min1) * margin_ratio
+    y1_min, y1_max = min1 - margin1, max1 + margin1
 
-    # Find normalized goal position on ref axis (0 = bottom, 1 = top)
-    norm_pos = (reference_weight - ref_range[0]) / (ref_range[1] - ref_range[0])
+    # 2. Normalize Kevin's goal position
+    norm_goal_pos = (kevin_start_weight - y1_min) / (y1_max - y1_min)
 
-    # Target range so target_weight falls at same relative position
-    target_range_total = target_weight / (1 - norm_pos) if norm_pos < 1 else 1
-    target_min = target_weight - target_range_total * norm_pos
-    target_max = target_weight + target_range_total * (1 - norm_pos)
-    return ref_range, [target_min, target_max]
+    # 3. Match Simon's goal to same position
+    simon_data = pd.concat([data2, pd.Series(goal2)])
+    simon_min_raw, simon_max_raw = simon_data.min(), simon_data.max()
+    simon_range_total = (simon_max_raw - simon_min_raw) or 1
+    simon_margin = simon_range_total * margin_ratio
 
-y1_range, y2_range = align_dual_axes(
-    kevin_start_weight, df_kevin["weight"], kevin_goal_weights,
-    simon_start_weight if simon_available else 1
-) if simon_available else (compute_axis_range(df_kevin["weight"], kevin_goal_weights), None)
+    # Compute total range needed so that Simon's goal appears at same relative height
+    simon_total_range = simon_start_weight / (norm_goal_pos or 1)
+    y2_min = simon_start_weight - simon_total_range * norm_goal_pos
+    y2_max = simon_start_weight + simon_total_range * (1 - norm_goal_pos)
 
-# --- X-axis Range ---
+    return [y1_min, y1_max], [y2_min, y2_max]
+
+y1_range, y2_range = aligned_ranges(
+    kevin_goal_weights, df_kevin["weight"],
+    simon_goal_weights, df_simon["weight"] if simon_available else pd.Series()
+)
+
+# --- X-axis range ---
 min_date = min(
     df_kevin["date"].min(),
     df_simon["date"].min() if simon_available and not df_simon.empty else goal_start_date
@@ -137,14 +145,23 @@ min_date = min(
 # --- Layout ---
 fig.update_layout(
     yaxis=dict(
-        title="Kevin", side="left", range=y1_range, showgrid=True
+        title="Kevin",
+        side="left",
+        range=y1_range,
+        showgrid=True,
+        tickformat=".1f"
     ),
     yaxis2=dict(
-        title="Simon", overlaying="y", side="right",
-        range=y2_range, showgrid=True, matches="y"
+        title="Simon",
+        overlaying="y",
+        side="right",
+        range=y2_range,
+        showgrid=False,
+        tickformat=".1f"
     ) if simon_available else {},
     xaxis=dict(
-        title="Date", range=[min_date, goal_end_date]
+        title="Date",
+        range=[min_date, goal_end_date]
     ),
     legend=dict(
         x=0.99, y=0.01, xanchor="right", yanchor="bottom",
