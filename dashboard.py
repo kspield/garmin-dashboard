@@ -107,6 +107,11 @@ def compute_axis_range(data_series, goal_series, margin_ratio=0.05):
 y1_range = compute_axis_range(df_kevin["weight"], kevin_goal_weights)
 y2_range = compute_axis_range(df_simon["weight"], simon_goal_weights) if simon_available else None
 
+min_date = min(
+    df_kevin["date"].min(),
+    df_simon["date"].min() if simon_available and not df_simon.empty else goal_start_date
+)
+
 fig.update_layout(
     yaxis=dict(
         title="Kevin",
