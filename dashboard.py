@@ -56,10 +56,19 @@ st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
 st.title("Fat Boy Slim Competition")
 
 # --- Constants ---
-kevin_start_weight, simon_start_weight = 79, 100
+kevin_start_weight = 79
 goal_start_date = datetime.datetime(2025, 7, 25)
 goal_end_date = datetime.datetime(2025, 12, 25)
 kevin_range_padding = 1
+
+# Default fallback if no data is available
+simon_start_weight = None
+
+if not df_simon.empty:
+    # Find the entry closest to the defined start date
+    df_simon["days_diff"] = (df_simon["date"] - goal_start_date).abs()
+    closest_row = df_simon.loc[df_simon["days_diff"].idxmin()]
+    simon_start_weight = closest_row["weight"]
 
 # --- Goal Computation ---
 def compute_goal_weights(start_weight, start_date):
@@ -72,7 +81,7 @@ kevin_start_date = goal_start_date
 goal_dates_kevin, kevin_goal_weights = compute_goal_weights(kevin_start_weight, kevin_start_date)
 kevin_goal_weight = kevin_goal_weights[-1]
 
-if simon_available:
+if simon_available and simon_start_weight is not None:
     simon_start_date = goal_start_date
     goal_dates_simon, simon_goal_weights = compute_goal_weights(simon_start_weight, simon_start_date)
     simon_goal_weight = simon_goal_weights[-1]
@@ -168,7 +177,7 @@ with col1:
     st.metric("Latest Weight", f"{latest_k:.1f} kg")
     st.metric("Total Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}%)")
 
-if simon_available:
+if simon_available and simon_start_weight is not None:
     with col2:
         st.subheader("Simon's Stats")
         latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
@@ -178,5 +187,8 @@ if simon_available:
         st.metric("Latest Weight", f"{latest_s:.1f} kg")
         st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
 
+if simon_available and simon_start_weight is None:
+    st.warning("Simon's starting weight could not be determined. No data near the goal start date.")
+    
 st.markdown('</div>', unsafe_allow_html=True)
 
