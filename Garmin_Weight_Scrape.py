@@ -12,7 +12,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # Path to your service account key (downloaded from Firebase Console)
-cred_path = os.path.expanduser("~/fatboyslim-a061f-firebase-adminsdk-fbsvc-6ca353274a.json")
+
+# Load credential path from environment variable
+cred_path = os.getenv("FIREBASE_KEY_PATH")
 cred = credentials.Certificate(cred_path)
 firebase_admin.initialize_app(cred)
 
