@@ -19,11 +19,11 @@ db = firestore.client()
 def load_data(user):
     try:
         st.write(f"🔄 Trying to load data for '{user}' from Firestore...")
-        docs = db.collection(user).stream()
+        docs = db.collection("users").document(user).collection("weight_data").stream()
         records = [doc.to_dict() for doc in docs]
         df = pd.DataFrame(records)
 
-        if not df.empty:
+        if not df.empty and "date" in df.columns:
             df["date"] = pd.to_datetime(df["date"])
             df = df.groupby("date").agg({
                 "weight": "mean",
@@ -43,6 +43,9 @@ def load_data(user):
 
 # Load user data
 df_kevin = load_data("kevin")
+
+st.write("Kevin data preview:")
+st.write(df_kevin)
 
 # Load Simon's data and average it per day
 df_simon_raw = load_data("simon")
