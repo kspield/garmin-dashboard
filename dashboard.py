@@ -20,25 +20,27 @@ db = firestore.client()
 def load_data(user):
     try:
         st.write(f"🔄 Trying to load data for '{user}' from Firestore...")
-        docs = firestore.client().collection(user).stream()
-        data = [doc.to_dict() for doc in docs]
-        st.success(f"✅ Loaded {len(data)} entries for '{user}'.")
-        return pd.DataFrame(data)
+        docs = db.collection(user).stream()
+        records = [doc.to_dict() for doc in docs]
+        df = pd.DataFrame(records)
+
+        if not df.empty:
+            df["date"] = pd.to_datetime(df["date"])
+            df = df.groupby("date").agg({
+                "weight": "mean",
+                "bodyFat": "mean"
+            }).reset_index().sort_values("date")
+
+        st.success(f"✅ Loaded {len(df)} entries for '{user}'.")
+        return df
+
     except GoogleAPIError as e:
         st.error(f"❌ Firestore error for '{user}': {e}")
         return pd.DataFrame()
+
     except Exception as e:
         st.error(f"❌ Unexpected error for '{user}': {e}")
         return pd.DataFrame()
-
-    df = pd.DataFrame(records)
-    if not df.empty:
-        df["date"] = pd.to_datetime(df["date"])
-        df = df.groupby("date").agg({
-            "weight": "mean",
-            "bodyFat": "mean"
-        }).reset_index().sort_values("date")
-    return df
 
 # Load user data
 df_kevin = load_data("kevin")
