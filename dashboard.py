@@ -3,6 +3,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import datetime
 import firebase_admin
+import streamlit as st
+from google.cloud import firestore
+from google.api_core.exceptions import GoogleAPIError
 from firebase_admin import credentials, firestore
 # Working
 
@@ -13,16 +16,19 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 # --- Load Data from Firestore ---
+
 def load_data(user):
     try:
-        st.write(f"Trying to load data for '{user}' from Firestore...")
+        st.write(f"🔄 Trying to load data for '{user}' from Firestore...")
         docs = firestore.client().collection(user).stream()
-        data = []
-        for doc in docs:
-            data.append(doc.to_dict())
+        data = [doc.to_dict() for doc in docs]
+        st.success(f"✅ Loaded {len(data)} entries for '{user}'.")
         return pd.DataFrame(data)
     except GoogleAPIError as e:
-        st.error(f"Firestore error for '{user}': {e}")
+        st.error(f"❌ Firestore error for '{user}': {e}")
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"❌ Unexpected error for '{user}': {e}")
         return pd.DataFrame()
 
     df = pd.DataFrame(records)
