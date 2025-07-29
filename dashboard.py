@@ -30,7 +30,7 @@ def load_data(user):
                 "bodyFat": "mean"
             }).reset_index().sort_values("date")
 
-        st.success(f"✅ Loaded {len(df)} entries for '{user}'.")
+        #st.success(f"✅ Loaded {len(df)} entries for '{user}'.")
         return df
 
     except GoogleAPIError as e:
@@ -44,8 +44,8 @@ def load_data(user):
 # Load user data
 df_kevin = load_data("kevin")
 
-st.write("Kevin data preview:")
-st.write(df_kevin)
+#st.write("Kevin data preview:")
+#st.write(df_kevin)
 
 # Load Simon's data and average it per day
 df_simon_raw = load_data("simon")
