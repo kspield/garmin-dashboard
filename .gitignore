@@ -17,3 +17,5 @@ response.json
 # IDE files (optional)
 .vscode/
 .idea/
+
+.env
