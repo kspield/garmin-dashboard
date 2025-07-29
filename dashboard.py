@@ -13,13 +13,17 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 # --- Load Data from Firestore ---
-def load_data(user: str) -> pd.DataFrame:
-    docs = db.collection("users").document(user).collection("weight_data").stream()
-    records = []
-    for doc in docs:
-        entry = doc.to_dict()
-        if "date" in entry:
-            records.append(entry)
+def load_data(user):
+    try:
+        st.write(f"Trying to load data for '{user}' from Firestore...")
+        docs = firestore.client().collection(user).stream()
+        data = []
+        for doc in docs:
+            data.append(doc.to_dict())
+        return pd.DataFrame(data)
+    except GoogleAPIError as e:
+        st.error(f"Firestore error for '{user}': {e}")
+        return pd.DataFrame()
 
     df = pd.DataFrame(records)
     if not df.empty:
