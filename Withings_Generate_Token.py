@@ -13,7 +13,7 @@ TOKEN_FILE = os.getenv("WITHINGS_TOKEN_FILE", "withings_tokens.json")
 def main() -> None:
     client_id = os.getenv("WITHINGS_CLIENT_ID") or input("Withings client ID: ")
     consumer_secret = os.getenv("WITHINGS_CONSUMER_SECRET") or input("Withings consumer secret: ")
-    callback_uri = os.getenv("WITHINGS_CALLBACK_URI", "http://localhost:5000/callback")
+    callback_uri = os.getenv("WITHINGS_CALLBACK_URI", "https://oauth.pstmn.io/v1/browser-callback")
 
     auth = WithingsAuth(
         client_id=client_id,

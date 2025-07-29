@@ -2,6 +2,8 @@ import datetime
 import json
 import os
 
+from pathlib import Path
+
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -17,14 +19,15 @@ except ImportError:  # pragma: no cover - library might not be available during 
 
 
 # Path to service account key for Firebase
-cred_path = os.getenv("FIREBASE_KEY_PATH")
+cred_path = os.path.expanduser("~/fatboyslim-a061f-firebase-adminsdk-fbsvc-b1021cb346.json")
 cred = credentials.Certificate(cred_path)
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
 # Path where Withings OAuth tokens are stored
-TOKEN_FILE = os.getenv("WITHINGS_TOKEN_FILE", "withings_tokens.json")
+
+TOKEN_FILE = str(Path.home() / "withings_tokens.json")
 
 # Default start date if no data exists locally
 DEFAULT_START_DATE = datetime.date(2025, 7, 24)
