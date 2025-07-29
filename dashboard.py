@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.graph_objects as go
 import datetime
 import firebase_admin
-import streamlit as st
 from google.cloud import firestore
 from google.api_core.exceptions import GoogleAPIError
 from firebase_admin import credentials, firestore
