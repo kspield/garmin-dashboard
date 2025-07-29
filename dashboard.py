@@ -260,23 +260,6 @@ if y2_range is not None:
         )
     )
 
-fig.add_trace(go.Scatter(
-    x=[goal_end_date],
-    y=[kevin_goal_weights[-1]],
-    mode="markers",
-    marker=dict(size=10, color="blue"),
-    name="Kevin Goal End"
-))
-
-fig.add_trace(go.Scatter(
-    x=[goal_end_date],
-    y=[simon_goal_weights[-1]],
-    mode="markers",
-    marker=dict(size=10, color="green"),
-    name="Simon Goal End",
-    yaxis="y2"
-))
-
 st.plotly_chart(fig, use_container_width=True)
 
 # --- Show message if Simon's data is missing or invalid ---
@@ -361,22 +344,24 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Kevin's Stats")
-    latest_k = df_kevin.dropna(subset=["weight"]).iloc[-1]["weight"]
+    latest_k = df_kevin.dropna(subset=["weight"])["weight"].iloc[-1]
     loss_k = kevin_start_weight - latest_k
     loss_pct_k = 100 * loss_k / kevin_start_weight
     st.metric("Starting Weight", f"{kevin_start_weight:.1f} kg")
     st.metric("Latest Weight", f"{latest_k:.1f} kg")
     st.metric("Total Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}%)")
+    st.metric("Goal Weight", f"{kevin_goal_weight:.1f} kg")  # ✅ Added
 
 if simon_available and simon_start_weight is not None:
     with col2:
         st.subheader("Simon's Stats")
-        latest_s = df_simon.dropna(subset=["weight"]).iloc[-1]["weight"]
+        latest_s = df_simon.dropna(subset=["weight"])["weight"].iloc[-1]
         loss_s = simon_start_weight - latest_s
         loss_pct_s = 100 * loss_s / simon_start_weight
         st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
         st.metric("Latest Weight", f"{latest_s:.1f} kg")
         st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
+        st.metric("Goal Weight", f"{simon_goal_weight:.1f} kg")  # ✅ Added
 
 if simon_available and simon_start_weight is None:
     st.warning("Simon's starting weight could not be determined. No data near the goal start date.")
