@@ -162,30 +162,36 @@ if simon_available:
 
 # --- Utility: Aligned Axis Ranges ---
 def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
-    # Y1 range: Kevin
+    # Kevin's Y-axis
     all1 = pd.concat([data1, pd.Series(goal1)])
     min1, max1 = all1.min(), all1.max()
     margin1 = (max1 - min1) * margin_ratio
-    y1_min, y1_max = min1 - margin1, max1 + margin1
+    y1_min = min1 - margin1
+    y1_max = max1 + margin1
 
-    # If Simon has no data or goal, return only y1
+    # Return only y1 range if Simon data is missing
     if goal2 is None or len(goal2) == 0 or data2 is None or data2.empty:
         return [y1_min, y1_max], None
 
-    # Position of Kevin's goal line in y1 range
-    goal1_value = goal1[-1]
-    norm_goal_y1 = (goal1_value - y1_min) / (y1_max - y1_min)
+    # Kevin's normalized positions
+    k_start, k_end = goal1[0], goal1[-1]
+    norm_start = (k_start - y1_min) / (y1_max - y1_min)
+    norm_end   = (k_end - y1_min) / (y1_max - y1_min)
 
-    # Y2 range: Simon
-    all2 = pd.concat([data2, pd.Series(goal2)])
-    goal2_value = goal2[-1]
-    range2_span = all2.max() - all2.min()
-    margin2 = range2_span * margin_ratio
+    # Simon's goal line values
+    s_start, s_end = goal2[0], goal2[-1]
 
-    # Now shift y2 range so that Simon's goal appears at the same relative height
-    y2_total_range = (all2.max() - all2.min()) + 2 * margin2
-    y2_min = goal2_value - norm_goal_y1 * y2_total_range
-    y2_max = goal2_value + (1 - norm_goal_y1) * y2_total_range
+    # Solve system of equations:
+    # (s_start - y2_min) / (y2_max - y2_min) = norm_start
+    # (s_end - y2_min) / (y2_max - y2_min) = norm_end
+
+    if norm_start == norm_end:
+        # Avoid division by zero in edge cases (e.g., flat goal line)
+        y2_min = min(s_start, s_end) - 1
+        y2_max = max(s_start, s_end) + 1
+    else:
+        y2_min = (s_end * norm_start - s_start * norm_end) / (norm_start - norm_end)
+        y2_max = y2_min + (s_start - y2_min) / norm_start
 
     return [y1_min, y1_max], [y2_min, y2_max]
 
