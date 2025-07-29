@@ -81,7 +81,7 @@ st.title("Fat Boy Slim Competition")
 # --- Date Filter Selection ---
 time_range = st.radio(
     "Select Time Range:",
-    options=["This Week", "This Month", "Last 30 Days", "Full Timeline"],
+    options=["This Week", "This Month", "Last 30 Days", "Competition Timeline"],
     index=3,  # Default: Full Timeline
     horizontal=True
 )
