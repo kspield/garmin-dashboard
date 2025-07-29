@@ -18,7 +18,6 @@ db = firestore.client()
 
 def load_data(user):
     try:
-        st.write(f"🔄 Trying to load data for '{user}' from Firestore...")
         docs = db.collection("users").document(user).collection("weight_data").stream()
         records = [doc.to_dict() for doc in docs]
         df = pd.DataFrame(records)
