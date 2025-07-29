@@ -4,3 +4,4 @@ streamlit
 pandas
 plotly
 firebase-admin
+withings-api
