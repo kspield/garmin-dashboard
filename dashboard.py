@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 import plotly.graph_objects as go
 import datetime
 import firebase_admin
@@ -7,11 +8,28 @@ from google.cloud import firestore
 from google.api_core.exceptions import GoogleAPIError
 from firebase_admin import credentials, firestore
 # Working
+#LOCAL_RUN=true streamlit run dashboard.py
 
-# --- Firebase Setup ---
+# Detect local run
+IS_LOCAL = os.getenv("LOCAL_RUN", "true").lower() == "true"
+
+# Firebase init
 if not firebase_admin._apps:
-    cred = credentials.Certificate({k: v.replace("\\n", "\n") if k == "private_key" else v for k, v in st.secrets["firebase"].items()})
+    if IS_LOCAL:
+        print("✅ Running locally. Loading firebase_key.json")
+        cred = credentials.Certificate("firebase_key.json")
+    else:
+        print("☁️ Running in Streamlit Cloud. Loading st.secrets['firebase']")
+        try:
+            firebase_secret = st.secrets["firebase"]
+            cred_dict = {k: v.replace("\\n", "\n") if k == "private_key" else v for k, v in firebase_secret.items()}
+            cred = credentials.Certificate(cred_dict)
+        except Exception as e:
+            st.error(f"❌ Failed to load secrets: {e}")
+            raise
+
     firebase_admin.initialize_app(cred)
+
 db = firestore.client()
 
 # --- Load Data from Firestore ---
@@ -42,9 +60,6 @@ def load_data(user):
 
 # Load user data
 df_kevin = load_data("kevin")
-
-#st.write("Kevin data preview:")
-#st.write(df_kevin)
 
 # Load Simon's data and average it per day
 df_simon_raw = load_data("simon")
@@ -200,10 +215,7 @@ elif time_range == "Last 30 Days":
     x_min = today - pd.Timedelta(days=30)
     x_max = today
 else:
-    x_min = min(
-        df_kevin["date"].min(),
-        df_simon["date"].min() if simon_available and not df_simon.empty else df_kevin["date"].min()
-    )
+    x_min = goal_start_date 
     x_max = goal_end_date
 
 x_range = [x_min.normalize(), x_max.normalize()]

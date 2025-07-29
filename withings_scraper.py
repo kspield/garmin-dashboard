@@ -133,8 +133,8 @@ for group in measures.measuregrps:
         try:
             db.collection("users").document(user_id).collection("weight_data").document(date).set({
                 "date": date,
-                "weight_kg": weight,
-                "fat_percent": fat_percent
+                "weight": weight,
+                "bodyFat": fat_percent
             })
             print(f"📤 Uploaded {date}: {weight:.2f} kg, fat: {fat_percent}")
             # Track latest scraped date
