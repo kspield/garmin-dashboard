@@ -6,7 +6,8 @@
 __pycache__/
 *.pyc
 
-fatboyslim-a061f-firebase-adminsdk-fbsvc-6ca353274a.json
+*.json
+secrets.toml
 
 # Local test output
 response.json
