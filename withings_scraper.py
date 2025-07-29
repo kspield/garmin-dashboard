@@ -17,7 +17,7 @@ client_secret = os.getenv("WITHINGS_CLIENT_SECRET")
 callback_uri = os.getenv("WITHINGS_CALLBACK")
 
 # Firebase setup
-cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
+cred_path = "firebase_key.json"
 cred = fb_credentials.Certificate(cred_path)
 initialize_app(cred)
 db = firestore.client()
