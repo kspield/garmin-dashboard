@@ -256,7 +256,7 @@ if y2_range is not None:
 
 fig.add_trace(go.Scatter(
     x=[goal_end_date],
-    y=[kevin_goal_weights.iloc[-1]],
+    y=[kevin_goal_weights[-1]],
     mode="markers",
     marker=dict(size=10, color="blue"),
     name="Kevin Goal End"
@@ -264,7 +264,7 @@ fig.add_trace(go.Scatter(
 
 fig.add_trace(go.Scatter(
     x=[goal_end_date],
-    y=[simon_goal_weights.iloc[-1]],
+    y=[simon_goal_weights[-1]],
     mode="markers",
     marker=dict(size=10, color="green"),
     name="Simon Goal End",
