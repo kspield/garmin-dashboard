@@ -47,7 +47,7 @@ api = None
 
 end_date = datetime.date.today()
 
-meta_ref = db.collection("kevin").document("meta").collection("status").document("last_scrape")
+meta_ref = db.collection("users").document("kevin").collection("meta").document("garmin_sync")
 meta_doc = meta_ref.get()
 
 if meta_doc.exists:
