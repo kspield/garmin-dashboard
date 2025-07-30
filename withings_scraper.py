@@ -26,7 +26,7 @@ db = firestore.client()
 user_id = "simon"  # or "kevin", or dynamic later
 
 # Token storage path
-TOKEN_FILE = "withings_tokens.json"
+TOKEN_FILE = Path(__file__).parent / "withings_tokens.json"
 
 # OAuth flow
 auth = WithingsAuth(
