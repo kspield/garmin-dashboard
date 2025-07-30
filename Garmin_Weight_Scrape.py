@@ -22,11 +22,6 @@ cred = credentials.Certificate(cred_path)
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
-collection_name = "kevin_data"
-
-# LOGGING
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 from garminconnect import (
     Garmin,
@@ -36,7 +31,6 @@ from garminconnect import (
 )
 
 # Configure debug logging
-# logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -53,72 +47,16 @@ api = None
 
 end_date = datetime.date.today()
 
-json_file = "Kevin_Data.json"
-existing_data = []
+meta_ref = db.collection("kevin").document("meta").collection("status").document("last_scrape")
+meta_doc = meta_ref.get()
 
-if os.path.exists(json_file):
-    with open(json_file, "r") as f:
-        existing_data = json.load(f)
-
-    # Find last entry with real data (weight not None)
-    existing_data = sorted(existing_data, key=lambda x: x["date"])
-    valid_entries = [entry for entry in existing_data if entry.get("weight") is not None]
-
-    if valid_entries:
-        last_valid_date_str = valid_entries[-1]["date"]
-        start_date = datetime.datetime.strptime(last_valid_date_str, "%Y-%m-%d").date()
-    else:
-        start_date = datetime.date(2025, 1, 1)  # fallback start
+if meta_doc.exists:
+    last_scraped_date = meta_doc.to_dict().get("date")
+    start_date = datetime.datetime.strptime(last_scraped_date, "%Y-%m-%d").date()
 else:
     start_date = datetime.date(2025, 1, 1)
 
 all_data = []
-
-
-def display_json(api_call, output):
-    """Format API output for better readability."""
-
-    dashed = "-" * 20
-    header = f"{dashed} {api_call} {dashed}"
-    footer = "-" * len(header)
-
-    # print(header)
-
-    # if isinstance(output, (int, str, dict, list)):
-    #     print(json.dumps(output, indent=4))
-    # else:
-    #     print(output)
-
-    # print(footer)
-    # Format the output
-    if isinstance(output, (int, str, dict, list)):
-        formatted_output = json.dumps(output, indent=4)
-    else:
-        formatted_output = str(output)
-
-    # Combine the header, output, and footer
-    full_output = f"{header}\n{formatted_output}\n{footer}"
-
-    # Print to console
-    print(full_output)
-
-    # Save to a file
-    output_filename = "response.json"
-    with open(output_filename, "w") as file:
-        file.write(full_output)
-
-    print(f"Output saved to {output_filename}")
-
-def display_text(output):
-    """Format API output for better readability."""
-
-    dashed = "-" * 60
-    header = f"{dashed}"
-    footer = "-" * len(header)
-
-    print(header)
-    print(json.dumps(output, indent=4))
-    print(footer)
 
 def get_credentials():
     """Get user credentials."""
@@ -136,14 +74,6 @@ def init_api(email, password):
         print(
             f"Trying to login to Garmin Connect using token data from directory '{tokenstore}'...\n"
         )
-
-        # Using Oauth1 and Oauth2 tokens from base64 encoded string
-        # print(
-        #     f"Trying to login to Garmin Connect using token data from file '{tokenstore_base64}'...\n"
-        # )
-        # dir_path = os.path.expanduser(tokenstore_base64)
-        # with open(dir_path, "r") as token_file:
-        #     tokenstore = token_file.read()
 
         garmin = Garmin()
         garmin.login(tokenstore)
@@ -210,6 +140,7 @@ if api:
         # Skip requests if login failed
     try:
         print("Fetching data from Garmin...")
+        latest_saved_date = None
         for day in range((end_date - start_date).days + 1):
             date = start_date + datetime.timedelta(days=day)
             weight = None
@@ -234,6 +165,7 @@ if api:
                 weight_collection = db.collection("users").document("kevin").collection("weight_data")
 
                 date_str = date.isoformat() 
+                latest_saved_date = date_str  # Update the latest saved date
 
                 # Get all existing docs for this date
                 existing_docs = weight_collection.where("date", "==", date_str).stream()
@@ -253,7 +185,11 @@ if api:
                 else:
                     print(f"➖ Weight for {date_str} already stored. Skipping.")
 
-        print("✅ Data uploaded to Firebase.")
+        if latest_saved_date:
+            meta_ref.set({"date": latest_saved_date})
+            print(f"✅ Data uploaded to Firebase. Last scraped date saved: {latest_saved_date}")
+        else:
+            print("⚠️ No new data saved. Meta date not updated.")
 
     except (
         GarminConnectConnectionError,
