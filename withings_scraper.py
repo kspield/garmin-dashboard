@@ -9,7 +9,7 @@ from firebase_admin import credentials as fb_credentials, firestore, initialize_
 from google.cloud.firestore_v1.base_query import FieldFilter
 
 # Load .env
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 # Withings API credentials
 client_id = os.getenv("WITHINGS_CLIENT_ID")
