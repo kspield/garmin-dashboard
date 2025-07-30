@@ -12,6 +12,8 @@ from garth.exc import GarthHTTPError
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+from google.cloud import firestore as gcf  # Needed for ordering Firestore docs
+
 # Path to your service account key (downloaded from Firebase Console)
 
 # Load credential path from environment variable
@@ -66,9 +68,9 @@ if os.path.exists(json_file):
         last_valid_date_str = valid_entries[-1]["date"]
         start_date = datetime.datetime.strptime(last_valid_date_str, "%Y-%m-%d").date()
     else:
-        start_date = datetime.date(2025, 7, 24)  # fallback start
+        start_date = datetime.date(2025, 1, 1)  # fallback start
 else:
-    start_date = datetime.date(2025, 7, 24)
+    start_date = datetime.date(2025, 1, 1)
 
 all_data = []
 
@@ -228,13 +230,28 @@ if api:
             logger.info(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
 
             # Save or update in Firebase
-            date_str = date.isoformat()  # <-- Add this line
-            doc_ref = db.collection("users").document("kevin").collection("weight_data").document(date_str)
-            doc_ref.set({
-                "date": date_str,
-                "weight": weight,
-                "bodyFat": body_fat
-            })
+            if weight is not None:
+                weight_collection = db.collection("users").document("kevin").collection("weight_data")
+
+                date_str = date.isoformat() 
+
+                # Get all existing docs for this date
+                existing_docs = weight_collection.where("date", "==", date_str).stream()
+                existing_weights = [doc.to_dict().get("weight") for doc in existing_docs]
+                doc_count = len(existing_weights)
+
+                if weight not in existing_weights:
+                    doc_id = f"{date_str}_{doc_count + 1}"
+                    weight_collection.document(doc_id).set({
+                        "date": date_str,
+                        "weight": weight,
+                        "bodyFat": body_fat,
+                        "scraped_at": datetime.datetime.now().isoformat(),
+                        "source": "garmin"
+                    })
+                    print(f"📌 Saved new weight entry: {doc_id}")
+                else:
+                    print(f"➖ Weight for {date_str} already stored. Skipping.")
 
         print("✅ Data uploaded to Firebase.")
 
