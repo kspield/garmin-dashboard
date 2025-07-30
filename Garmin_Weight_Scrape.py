@@ -14,6 +14,16 @@ from firebase_admin import credentials, firestore
 
 from google.cloud import firestore as gcf  # Needed for ordering Firestore docs
 
+import warnings
+
+# Suppress the specific Firestore positional argument warning
+warnings.filterwarnings(
+    "ignore",
+    message="Detected filter using positional arguments.*",
+    category=UserWarning,
+    module="google.cloud.firestore"
+)
+
 # Path to your service account key (downloaded from Firebase Console)
 
 # Load credential path from environment variable
