@@ -15,18 +15,14 @@ IS_LOCAL = os.getenv("LOCAL_RUN", "true").lower() == "true"
 
 # Firebase init
 if not firebase_admin._apps:
-    if IS_LOCAL:
-        print("✅ Running locally. Loading firebase_key.json")
-        cred = credentials.Certificate("firebase_key.json")
-    else:
-        print("☁️ Running in Streamlit Cloud. Loading st.secrets['firebase']")
-        try:
-            firebase_secret = st.secrets["firebase"]
-            cred_dict = {k: v.replace("\\n", "\n") if k == "private_key" else v for k, v in firebase_secret.items()}
-            cred = credentials.Certificate(cred_dict)
-        except Exception as e:
-            st.error(f"❌ Failed to load secrets: {e}")
-            raise
+    print("☁️ Running in Streamlit Cloud. Loading st.secrets['firebase']")
+    try:
+        firebase_secret = st.secrets["firebase"]
+        cred_dict = {k: v.replace("\\n", "\n") if k == "private_key" else v for k, v in firebase_secret.items()}
+        cred = credentials.Certificate(cred_dict)
+    except Exception as e:
+        st.error(f"❌ Failed to load secrets: {e}")
+        raise
 
     firebase_admin.initialize_app(cred)
 
