@@ -4,6 +4,7 @@ import json
 import logging
 import os
 from getpass import getpass
+from pathlib import Path
 
 import requests
 from garth.exc import GarthHTTPError
