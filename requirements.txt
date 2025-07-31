@@ -6,3 +6,4 @@ plotly
 firebase-admin
 withings-api
 dotenv
+scipy
