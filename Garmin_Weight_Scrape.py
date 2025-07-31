@@ -81,9 +81,7 @@ def init_api(email, password):
 
     try:
         # Using Oauth1 and OAuth2 token files from directory
-        print(
-            f"Trying to login to Garmin Connect using token data from directory '{tokenstore}'...\n"
-        )
+        #print(f"Trying to login to Garmin Connect using token data from directory '{tokenstore}'...\n")
 
         garmin = Garmin()
         garmin.login(tokenstore)
@@ -149,7 +147,7 @@ if api:
     # Display menu
         # Skip requests if login failed
     try:
-        print("Fetching data from Garmin...")
+        #print("Fetching data from Garmin...")
         latest_saved_date = None
         for day in range((end_date - start_date).days + 1):
             date = start_date + datetime.timedelta(days=day)
@@ -191,13 +189,13 @@ if api:
                         "scraped_at": datetime.datetime.now().isoformat(),
                         "source": "garmin"
                     })
-                    print(f"📌 Saved new weight entry: {doc_id}")
-                else:
-                    print(f"➖ Weight for {date_str} already stored. Skipping.")
+                    #print(f"📌 Saved new weight entry: {doc_id}")
+                #else:
+                    #print(f"➖ Weight for {date_str} already stored. Skipping.")
 
         if latest_saved_date:
             meta_ref.set({"date": latest_saved_date})
-            print(f"✅ Data uploaded to Firebase. Last scraped date saved: {latest_saved_date}")
+            print(f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Garmin Scraper - ✅ Sync marker at: {latest_saved_date}")
         else:
             print("⚠️ No new data saved. Meta date not updated.")
 

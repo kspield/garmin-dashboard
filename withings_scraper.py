@@ -38,7 +38,7 @@ auth = WithingsAuth(
 
 # Load or generate credentials
 if Path(TOKEN_FILE).exists():
-    print("🔁 Loading saved Withings credentials...")
+    #print("🔁 Loading saved Withings credentials...")
     with open(TOKEN_FILE, "r") as f:
         saved = json.load(f)
         credentials = Credentials(
@@ -78,7 +78,7 @@ try:
             "refresh_token": refreshed.refresh_token,
             "userid": refreshed.userid,
         }, f)
-    print("🔄 Token refreshed and saved.")
+    #print("🔄 Token refreshed and saved.")
 except Exception as e:
     print(f"❌ Failed to refresh token: {e}")
     exit()
@@ -90,7 +90,7 @@ doc = meta_ref.get()
 if doc.exists:
     last_sync_date = doc.to_dict().get("last_date")
     start_date = datetime.date.fromisoformat(last_sync_date)
-    print(f"🔁 Last Withings sync: {start_date}")
+    #print(f"🔁 Last Withings sync: {start_date}")
 else:
     start_date = datetime.date.today() - datetime.timedelta(days=300)
     print(f"📆 No previous sync found. Starting from {start_date}")
@@ -104,7 +104,7 @@ try:
         enddate=end_date,
         lastupdate=None
     )
-    print(f"✅ Found {len(measures.measuregrps)} measurement groups.")
+    #print(f"✅ Found {len(measures.measuregrps)} measurement groups.")
 except Exception as e:
     print(f"❌ Error fetching data: {e}")
     exit()
@@ -136,7 +136,7 @@ for group in measures.measuregrps:
                 "weight": weight,
                 "bodyFat": fat_percent
             })
-            print(f"📤 Uploaded {date}: {weight:.2f} kg, fat: {fat_percent}")
+            #print(f"📤 Uploaded {date}: {weight:.2f} kg, fat: {fat_percent}")
             # Track latest scraped date
             if date > latest_scraped_date.isoformat():
                 latest_scraped_date = datetime.date.fromisoformat(date)
@@ -146,6 +146,6 @@ for group in measures.measuregrps:
 # Update sync marker
 try:
     meta_ref.set({"last_date": latest_scraped_date.isoformat()})
-    print(f"✅ Sync marker updated to {latest_scraped_date}")
+    print(f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Withings Scraper - ✅ Sync marker at: {latest_scraped_date}")
 except Exception as e:
     print(f"❌ Failed to update sync marker: {e}")
