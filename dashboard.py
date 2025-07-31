@@ -143,8 +143,8 @@ def compute_trendline(df, end_date):
 
     return x_vals, y_vals
 
-kevin_trend_x, kevin_trend_y = compute_trendline(df_kevin_comp)
-simon_trend_x, simon_trend_y = compute_trendline(df_simon_comp)
+kevin_trend_x, kevin_trend_y = compute_trendline(df_kevin_comp, goal_end_date)
+simon_trend_x, simon_trend_y = compute_trendline(df_simon_comp, goal_end_date)
 
 show_trendlines = st.checkbox("Show Linear Trendlines", value=True)
 
