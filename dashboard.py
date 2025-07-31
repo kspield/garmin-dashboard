@@ -177,7 +177,7 @@ if simon_available:
     ))
 
 # Add Kevin linear trendline
-if show_trendlines and kevin_trend_x:
+if show_trendlines and len(kevin_trend_x) > 0:
     fig.add_trace(go.Scatter(
         x=kevin_trend_x, y=kevin_trend_y,
         mode="lines",
@@ -187,7 +187,7 @@ if show_trendlines and kevin_trend_x:
     ))
 
 # Add Simon linear trendline
-if show_trendlines and simon_available and not df_simon_comp.empty:
+if show_trendlines and simon_available and len(simon_trend_x) > 0:
     fig.add_trace(go.Scatter(
         x=simon_trend_x, y=simon_trend_y,
         mode="lines",
