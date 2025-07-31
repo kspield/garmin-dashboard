@@ -7,11 +7,8 @@ import firebase_admin
 from google.cloud import firestore
 from google.api_core.exceptions import GoogleAPIError
 from firebase_admin import credentials, firestore
-# Working
-#LOCAL_RUN=true streamlit run dashboard.py
+from scipy.stats import linregress
 
-# Detect local run
-IS_LOCAL = os.getenv("LOCAL_RUN", "true").lower() == "true"
 
 # Firebase init
 if not firebase_admin._apps:
@@ -125,6 +122,28 @@ try:
 except NameError:
     simon_goals = None
 
+
+# --- Filter to competition timeline for Trendline---
+df_kevin_comp = df_kevin[(df_kevin["date"] >= goal_start_date) & (df_kevin["date"] <= goal_end_date)]
+df_simon_comp = df_simon[(df_simon["date"] >= goal_start_date) & (df_simon["date"] <= goal_end_date)] if simon_available else pd.DataFrame()
+
+# --- Compute Linear Trendline for Kevin ---
+def compute_trendline(df):
+    if df.empty:
+        return [], []
+    x = (df["date"] - df["date"].min()).dt.days
+    y = df["weight"]
+    slope, intercept, *_ = linregress(x, y)
+    x_vals = pd.date_range(df["date"].min(), df["date"].max(), freq="D")
+    x_days = (x_vals - df["date"].min()).days
+    y_vals = intercept + slope * x_days
+    return x_vals, y_vals
+
+kevin_trend_x, kevin_trend_y = compute_trendline(df_kevin_comp)
+simon_trend_x, simon_trend_y = compute_trendline(df_simon_comp)
+
+show_trendlines = st.checkbox("Show Linear Trendlines", value=True)
+
 # --- Plot ---
 fig = go.Figure()
 
@@ -141,6 +160,7 @@ fig.add_trace(go.Scatter(
     showlegend=True
 ))
 
+
 if simon_available:
     fig.add_trace(go.Scatter(
         x=df_simon["date"], y=df_simon["weight"],
@@ -154,6 +174,26 @@ if simon_available:
         line=dict(dash="dot", color="gray"),
         yaxis="y2",
         showlegend=False  # hide from legend
+    ))
+
+# Add Kevin linear trendline
+if show_trendlines and kevin_trend_x:
+    fig.add_trace(go.Scatter(
+        x=kevin_trend_x, y=kevin_trend_y,
+        mode="lines",
+        line=dict(dash="dot", color="blue"),
+        name="Kevin Linear Trend",
+        yaxis="y1"
+    ))
+
+# Add Simon linear trendline
+if show_trendlines and simon_available and not df_simon_comp.empty:
+    fig.add_trace(go.Scatter(
+        x=simon_trend_x, y=simon_trend_y,
+        mode="lines",
+        line=dict(dash="dot", color="green"),
+        name="Simon Linear Trend",
+        yaxis="y2"
     ))
 
 # --- Utility: Aligned Axis Ranges ---
