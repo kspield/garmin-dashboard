@@ -128,7 +128,7 @@ df_kevin_comp = df_kevin[(df_kevin["date"] >= goal_start_date) & (df_kevin["date
 df_simon_comp = df_simon[(df_simon["date"] >= goal_start_date) & (df_simon["date"] <= goal_end_date)] if simon_available else pd.DataFrame()
 
 # --- Compute Linear Trendline for Kevin ---
-def compute_trendline_extended(df, end_date):
+def compute_trendline(df, end_date):
     if df.empty:
         return [], []
     # x in days since start
