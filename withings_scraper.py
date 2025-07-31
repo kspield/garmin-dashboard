@@ -8,6 +8,10 @@ from withings_api.common import Credentials
 from firebase_admin import credentials as fb_credentials, firestore, initialize_app
 from google.cloud.firestore_v1.base_query import FieldFilter
 
+from datetime import datetime
+
+now = datetime.now()
+
 # Load .env
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 

@@ -16,6 +16,10 @@ from google.cloud import firestore as gcf  # Needed for ordering Firestore docs
 
 import warnings
 
+from datetime import datetime
+
+now = datetime.now()
+
 # Suppress the specific Firestore positional argument warning
 warnings.filterwarnings(
     "ignore",
