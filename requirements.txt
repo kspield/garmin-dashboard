@@ -7,3 +7,4 @@ firebase-admin
 withings-api
 dotenv
 scipy
+numpy
