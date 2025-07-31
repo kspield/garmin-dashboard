@@ -16,10 +16,6 @@ from google.cloud import firestore as gcf  # Needed for ordering Firestore docs
 
 import warnings
 
-from datetime import datetime
-
-now = datetime.now()
-
 # Suppress the specific Firestore positional argument warning
 warnings.filterwarnings(
     "ignore",
@@ -47,6 +43,8 @@ from garminconnect import (
 # Configure debug logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.disabled = True
+
 
 # Load environment variables if defined
 email = os.getenv("EMAIL")
@@ -85,14 +83,14 @@ def init_api(email, password):
 
     try:
         # Using Oauth1 and OAuth2 token files from directory
-        #print(f"Trying to login to Garmin Connect using token data from directory '{tokenstore}'...\n")
+        logger.info(f"Trying to login to Garmin Connect using token data from directory '{tokenstore}'...\n")
 
         garmin = Garmin()
         garmin.login(tokenstore)
 
     except (FileNotFoundError, GarthHTTPError, GarminConnectAuthenticationError):
         # Session is expired. You'll need to log in again
-        print(
+        logger.info(
             "Login tokens not present, login with your Garmin Connect credentials to generate them.\n"
             f"They will be stored in '{tokenstore}' for future use.\n"
         )
@@ -111,7 +109,7 @@ def init_api(email, password):
 
             # Save Oauth1 and Oauth2 token files to directory for next login
             garmin.garth.dump(tokenstore)
-            print(
+            logger.info(
                 f"Oauth tokens stored in '{tokenstore}' directory for future use. (first method)\n"
             )
 
@@ -120,7 +118,7 @@ def init_api(email, password):
             dir_path = os.path.expanduser(tokenstore_base64)
             with open(dir_path, "w") as token_file:
                 token_file.write(token_base64)
-            print(
+            logger.info(
                 f"Oauth tokens encoded as base64 string and saved to '{dir_path}' file for future use. (second method)\n"
             )
 
@@ -151,7 +149,7 @@ if api:
     # Display menu
         # Skip requests if login failed
     try:
-        #print("Fetching data from Garmin...")
+        logger.info("Fetching data from Garmin...")
         latest_saved_date = None
         for day in range((end_date - start_date).days + 1):
             date = start_date + datetime.timedelta(days=day)
@@ -166,9 +164,9 @@ if api:
                 body_fat = total_avg.get("bodyFat")
             except Exception as e:
                 if "No data" in str(e) or "404" in str(e):
-                    print(f"{date}: No data available.")
+                    logger.error(f"{date}: No data available.")
                 else:
-                    print(f"{date}: Error – {e}")
+                    logger.error(f"{date}: Error – {e}")
 
             logger.info(f"{date}: weight = {weight} kg, body fat = {body_fat} %")
 
@@ -193,15 +191,16 @@ if api:
                         "scraped_at": datetime.datetime.now().isoformat(),
                         "source": "garmin"
                     })
-                    #print(f"📌 Saved new weight entry: {doc_id}")
+                    logger.info(f"📌 Saved new weight entry: {doc_id}")
                 #else:
-                    #print(f"➖ Weight for {date_str} already stored. Skipping.")
+                    logger.error(f"➖ Weight for {date_str} already stored. Skipping.")
 
         if latest_saved_date:
             meta_ref.set({"date": latest_saved_date})
+            now = datetime.datetime.now()
             print(f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Garmin Scraper - ✅ Sync marker at: {latest_saved_date}")
         else:
-            print("⚠️ No new data saved. Meta date not updated.")
+            logger.error("⚠️ No new data saved. Meta date not updated.")
 
     except (
         GarminConnectConnectionError,
@@ -215,7 +214,7 @@ if api:
         # Invalid menu option chosen
         pass
 else:
-    print("Could not login to Garmin Connect, try again later.")
+    logger.error("Could not login to Garmin Connect, try again later.")
 
 test = 1
 
