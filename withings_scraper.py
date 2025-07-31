@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
 from withings_api import WithingsApi, WithingsAuth, AuthScope
@@ -8,6 +9,10 @@ from withings_api.common import Credentials
 from firebase_admin import credentials as fb_credentials, firestore, initialize_app
 from google.cloud.firestore_v1.base_query import FieldFilter
 
+# Configure debug logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.disabled = True
 
 # Load .env
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")
@@ -39,7 +44,7 @@ auth = WithingsAuth(
 
 # Load or generate credentials
 if Path(TOKEN_FILE).exists():
-    #print("🔁 Loading saved Withings credentials...")
+    logger.info("🔁 Loading saved Withings credentials...")
     with open(TOKEN_FILE, "r") as f:
         saved = json.load(f)
         credentials = Credentials(
@@ -79,9 +84,9 @@ try:
             "refresh_token": refreshed.refresh_token,
             "userid": refreshed.userid,
         }, f)
-    #print("🔄 Token refreshed and saved.")
+    logger.info("🔄 Token refreshed and saved.")
 except Exception as e:
-    print(f"❌ Failed to refresh token: {e}")
+    logger.error(f"❌ Failed to refresh token: {e}")
     exit()
 
 # Get last Withings sync date
@@ -91,10 +96,10 @@ doc = meta_ref.get()
 if doc.exists:
     last_sync_date = doc.to_dict().get("last_date")
     start_date = datetime.date.fromisoformat(last_sync_date)
-    #print(f"🔁 Last Withings sync: {start_date}")
+    logger.info(f"🔁 Last Withings sync: {start_date}")
 else:
     start_date = datetime.date.today() - datetime.timedelta(days=300)
-    print(f"📆 No previous sync found. Starting from {start_date}")
+    logger.info(f"📆 No previous sync found. Starting from {start_date}")
 
 end_date = datetime.date.today()
 
@@ -105,13 +110,13 @@ try:
         enddate=end_date,
         lastupdate=None
     )
-    #print(f"✅ Found {len(measures.measuregrps)} measurement groups.")
+    logger.info(f"✅ Found {len(measures.measuregrps)} measurement groups.")
 except Exception as e:
-    print(f"❌ Error fetching data: {e}")
+    logger.error(f"❌ Error fetching data: {e}")
     exit()
 
 if not measures.measuregrps:
-    print("⚠️ No new Withings data found.")
+    logger.error("⚠️ No new Withings data found.")
     exit()
 
 # Track latest date scraped
@@ -137,12 +142,12 @@ for group in measures.measuregrps:
                 "weight": weight,
                 "bodyFat": fat_percent
             })
-            #print(f"📤 Uploaded {date}: {weight:.2f} kg, fat: {fat_percent}")
+            logger.info(f"📤 Uploaded {date}: {weight:.2f} kg, fat: {fat_percent}")
             # Track latest scraped date
             if date > latest_scraped_date.isoformat():
                 latest_scraped_date = datetime.date.fromisoformat(date)
         except Exception as e:
-            print(f"❌ Upload failed for {date}: {e}")
+            logger.error(f"❌ Upload failed for {date}: {e}")
 
 # Update sync marker
 try:
@@ -150,4 +155,4 @@ try:
     now = datetime.datetime.now()
     print(f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Withings Scraper - ✅ Sync marker at: {latest_scraped_date}")
 except Exception as e:
-    print(f"❌ Failed to update sync marker: {e}")
+    logger.error(f"❌ Failed to update sync marker: {e}")
