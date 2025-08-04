@@ -8,6 +8,7 @@ from withings_api import WithingsApi, WithingsAuth, AuthScope
 from withings_api.common import Credentials
 from firebase_admin import credentials as fb_credentials, firestore, initialize_app
 from google.cloud.firestore_v1.base_query import FieldFilter
+from datetime import datetime as dt, time
 
 # Configure debug logging
 logging.basicConfig(level=logging.INFO)
@@ -102,12 +103,15 @@ else:
     logger.info(f"📆 No previous sync found. Starting from {start_date}")
 
 end_date = datetime.date.today()
+end_timestamp = int(dt.now().timestamp())
+
+start_timestamp = int(dt.combine(start_date, time.min).timestamp())
 
 # Fetch measurements
 try:
     measures = api.measure_get_meas(
-        startdate=start_date,
-        enddate=end_date,
+        startdate=start_timestamp,
+        enddate=end_timestamp,
         lastupdate=None
     )
     logger.info(f"✅ Found {len(measures.measuregrps)} measurement groups.")
