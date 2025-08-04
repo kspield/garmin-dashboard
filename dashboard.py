@@ -129,20 +129,36 @@ df_kevin_comp = df_kevin[(df_kevin["date"] >= goal_start_date) & (df_kevin["date
 df_simon_comp = df_simon[(df_simon["date"] >= goal_start_date) & (df_simon["date"] <= goal_end_date)] if simon_available else pd.DataFrame()
 
 # --- Compute Linear Trendline for Kevin ---
-def compute_trendline(df, end_date):
+def compute_trendline(df, goal_end_date):
     if df.empty:
         return [], []
-    # x in days since start
-    x = (df["date"] - df["date"].min()).dt.days.to_numpy()
+
+    x = df["date"].map(datetime.datetime.toordinal).to_numpy()
     y = df["weight"].to_numpy()
-    coeffs = np.polyfit(x, y, deg=1)  # Linear regression: y = m*x + b
 
-    # Extend x_vals from start to end_date
-    x_vals = pd.date_range(df["date"].min(), end_date, freq="D")
-    x_days = (x_vals - df["date"].min()).days
-    y_vals = coeffs[0] * x_days + coeffs[1]
+    # Remove bad data
+    mask = (
+        ~np.isnan(x) & ~np.isnan(y) &
+        np.isfinite(x) & np.isfinite(y)
+    )
+    x = x[mask]
+    y = y[mask]
 
-    return x_vals, y_vals
+    if len(x) < 2 or np.all(x == x[0]) or np.all(y == y[0]):
+        return [], []
+
+    try:
+        coeffs = np.polyfit(x, y, deg=1)  # Linear regression
+        m, b = coeffs
+
+        end_x = datetime.datetime.strptime(goal_end_date, "%Y-%m-%d").toordinal()
+        trend_x = np.array([x[0], end_x])
+        trend_y = m * trend_x + b
+
+        return trend_x, trend_y
+    except Exception as e:
+        print(f"⚠️ Trendline error: {e}")
+        return [], []
 
 kevin_trend_x, kevin_trend_y = compute_trendline(df_kevin_comp, goal_end_date)
 simon_trend_x, simon_trend_y = compute_trendline(df_simon_comp, goal_end_date)
