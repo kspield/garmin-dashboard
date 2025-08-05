@@ -154,7 +154,8 @@ def compute_trendline(df, goal_end_date):
         trend_x = np.array([x[0], end_x])
         trend_y = m * trend_x + b
 
-        return trend_x, trend_y
+        trend_x_dates = [datetime.date.fromordinal(int(d)) for d in trend_x]
+        return trend_x_dates, trend_y
     except Exception as e:
         print(f"⚠️ Trendline error: {e}")
         return [], []
