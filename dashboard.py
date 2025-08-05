@@ -136,7 +136,6 @@ def compute_trendline(df, goal_end_date):
     x = df["date"].map(datetime.datetime.toordinal).to_numpy()
     y = df["weight"].to_numpy()
 
-    # Remove bad data
     mask = (
         ~np.isnan(x) & ~np.isnan(y) &
         np.isfinite(x) & np.isfinite(y)
@@ -151,7 +150,7 @@ def compute_trendline(df, goal_end_date):
         coeffs = np.polyfit(x, y, deg=1)  # Linear regression
         m, b = coeffs
 
-        end_x = datetime.datetime.strptime(goal_end_date, "%Y-%m-%d").toordinal()
+        end_x = goal_end_date.toordinal()  # ✅ FIXED HERE
         trend_x = np.array([x[0], end_x])
         trend_y = m * trend_x + b
 
