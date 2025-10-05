@@ -281,7 +281,17 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, df_kev
         max_value = df_kevin.loc[mask, "weight"].max()
     else:
         max_value = max(y1_start, y1_end)
-    margin = max_value - y1_start + 0.2
+
+    mask = (df_kevin["date"] >= x1) & (df_kevin["date"] <= x2)
+    if not df_kevin.loc[mask].empty:
+        min_value = df_kevin.loc[mask, "weight"].min()
+    else:
+        min_value = min(y1_start, y1_end)
+
+    margin1 = max_value - y1_start + 0.2
+    margin2 = y1_end - min_value + 0.2
+
+    margin = max(margin1,margin2)
 
     # Apply proportional margins
     y1_margin = margin
