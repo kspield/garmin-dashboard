@@ -290,17 +290,18 @@ min_date = (
 
 today = pd.Timestamp.today()
 
-if time_range == "Last 14 Days":
-    x_min = today - pd.Timedelta(days=14)
-    x_max = today
-elif time_range == "Last 30 Days":
-    x_min = today - pd.Timedelta(days=30)
-    x_max = today
-else:
-    x_min = goal_start_date 
-    x_max = goal_end_date
+# Commented out manual x_range definition and usage
+# if time_range == "Last 14 Days":
+#     x_min = today - pd.Timedelta(days=14)
+#     x_max = today
+# elif time_range == "Last 30 Days":
+#     x_min = today - pd.Timedelta(days=30)
+#     x_max = today
+# else:
+#     x_min = goal_start_date 
+#     x_max = goal_end_date
 
-x_range = [x_min.normalize(), x_max.normalize()]
+# x_range = [x_min.normalize(), x_max.normalize()]
 
 # --- Layout ---
 fig.update_layout(
@@ -314,7 +315,15 @@ fig.update_layout(
     ),
     xaxis=dict(
         title="Date",
-        range=x_range
+        rangeslider=dict(visible=True),
+        rangeselector=dict(
+            buttons=list([
+                dict(count=14, label="14d", step="day", stepmode="backward"),
+                dict(count=30, label="30d", step="day", stepmode="backward"),
+                dict(step="all", label="All")
+            ])
+        ),
+        type="date"
     ),
     legend=dict(
         x=0.99, y=0.01, xanchor="right", yanchor="bottom",
@@ -335,6 +344,8 @@ if y2_range is not None:
             matches=None
         )
     )
+
+fig.update_yaxes(autorange=True)
 
 st.plotly_chart(fig, use_container_width=True)
 
