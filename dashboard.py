@@ -281,6 +281,8 @@ y1_range, y2_range = aligned_ranges(
     df_simon["weight"] if simon_available and not df_simon.empty else None
 )
 
+import numpy as np  # ensure np is imported for proportional zoom
+
 # --- X-axis range ---
 min_date = (
     min(df_kevin["date"].min(), df_simon["date"].min())
@@ -290,12 +292,24 @@ min_date = (
 
 today = pd.Timestamp.today()
 
+# --- Proportional zoom function ---
+def proportional_zoom(y1_range, y2_range, zoom_factor=0.8):
+    if y2_range is None:
+        return y1_range, y2_range
+    y1_mid = np.mean(y1_range)
+    y2_mid = np.mean(y2_range)
+    y1_span = (y1_range[1] - y1_range[0]) * zoom_factor
+    y2_span = (y2_range[1] - y2_range[0]) * zoom_factor
+    return [y1_mid - y1_span / 2, y1_mid + y1_span / 2], [y2_mid - y2_span / 2, y2_mid + y2_span / 2]
+
 if time_range == "Last 14 Days":
     x_min = today - pd.Timedelta(days=14)
     x_max = today
+    y1_range, y2_range = proportional_zoom(y1_range, y2_range, zoom_factor=0.6)
 elif time_range == "Last 30 Days":
     x_min = today - pd.Timedelta(days=30)
     x_max = today
+    y1_range, y2_range = proportional_zoom(y1_range, y2_range, zoom_factor=0.8)
 else:  # "Competition Timeline"
     x_min = goal_start_date
     x_max = goal_end_date
