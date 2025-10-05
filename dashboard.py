@@ -94,13 +94,11 @@ if "device_checked" not in st.session_state:
     )
     st.session_state["device_checked"] = True
 
-# Handle device view preference (approximation for Streamlit Cloud)
+# Set a safe default for initial load (no internal API usage)
 if "time_range" not in st.session_state:
-    st.session_state["time_range"] = "Last 30 Days" if st.runtime.scriptrunner.script_run_context.script_request_queue_context is not None else "Competition Timeline"
+    st.session_state["time_range"] = "Last 30 Days"
 
 # --- UI State Defaults (for controls rendered later) ---
-if "time_range" not in st.session_state:
-    st.session_state["time_range"] = "Competition Timeline"
 if "show_trendlines" not in st.session_state:
     st.session_state["show_trendlines"] = True
 if "trend_type" not in st.session_state:
