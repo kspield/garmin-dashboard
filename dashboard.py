@@ -336,7 +336,6 @@ fig.update_layout(
     xaxis=dict(
         title="Date",
         range=x_range,  # Keep manual range logic
-        ),
         type="date"
     ),
     legend=dict(
