@@ -241,21 +241,21 @@ if show_trendlines and simon_available and len(simon_trend_x) > 0:
     ))
 
 # --- Utility: Aligned Axis Ranges ---
-def aligned_ranges_from_trends(x1, x2, trend1_x, trend1_y, trend2_x, trend2_y, margin_ratio=0.05):
+def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin_ratio=0.05):
     """
-    Compute y-axis ranges for both axes so that the two trendlines sit perfectly on top
-    of each other between x1 and x2, including a proportional margin.
+    Compute y-axis ranges so the two goal weight lines (Kevin and Simon)
+    sit perfectly on top of each other between x1 and x2, including a proportional margin.
     """
-    if len(trend1_x) == 0 or len(trend2_x) == 0:
+    if len(goal1_x) == 0 or len(goal2_x) == 0:
         return None, None
 
-    # Interpolate both trendlines at x1 and x2
-    y1_start, y1_end = np.interp([x1.toordinal(), x2.toordinal()], 
-                                 [pd.Timestamp(xx).toordinal() for xx in trend1_x], trend1_y)
-    y2_start, y2_end = np.interp([x1.toordinal(), x2.toordinal()], 
-                                 [pd.Timestamp(xx).toordinal() for xx in trend2_x], trend2_y)
+    # Interpolate both goal lines at x1 and x2
+    y1_start, y1_end = np.interp([x1.toordinal(), x2.toordinal()],
+                                 [pd.Timestamp(xx).toordinal() for xx in goal1_x], goal1_y)
+    y2_start, y2_end = np.interp([x1.toordinal(), x2.toordinal()],
+                                 [pd.Timestamp(xx).toordinal() for xx in goal2_x], goal2_y)
 
-    # Compute spans
+    # Compute spans and avoid division by zero
     span1 = y1_end - y1_start
     span2 = y2_end - y2_start
     if span2 == 0:
@@ -264,14 +264,13 @@ def aligned_ranges_from_trends(x1, x2, trend1_x, trend1_y, trend2_x, trend2_y, m
     # Scale Simon’s axis so slope and vertical scaling match Kevin’s
     scale = span1 / span2
 
-    # Center points and half spans
+    # Midpoints and half spans
     y1_mid = (y1_start + y1_end) / 2
     y2_mid = (y2_start + y2_end) / 2
-
     y1_halfspan = abs(span1) / 2
     y2_halfspan = abs(span2 * scale) / 2
 
-    # Apply proportional margin
+    # Apply proportional margin (scaled equally)
     y1_margin = y1_halfspan * margin_ratio
     y2_margin = y2_halfspan * margin_ratio
 
@@ -305,9 +304,11 @@ else:  # "Competition Timeline"
     x_min = goal_start_date
     x_max = goal_end_date
 
-# Recompute aligned y-ranges for the selected window using trendlines
-y1_range, y2_range = aligned_ranges_from_trends(
-    x_min, x_max, kevin_trend_x, kevin_trend_y, simon_trend_x, simon_trend_y
+x1 = x_min
+x2 = x_max
+# Recompute aligned y-ranges for the selected window using GOAL lines (not trendlines)
+y1_range, y2_range = aligned_ranges_from_goals(
+    x1, x2, goal_dates_kevin, kevin_goal_weights, goal_dates_simon, simon_goal_weights
 )
 x_range = [x_min, x_max]
 
