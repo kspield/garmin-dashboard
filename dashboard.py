@@ -77,7 +77,7 @@ st.title("Fat Boy Slim Competition")
 time_range = st.radio(
     "Select Time Range:",
     options=["Last 14 Days", "Last 30 Days", "Competition Timeline"],
-    index=3,
+    index=2,
     horizontal=True
 )
 
