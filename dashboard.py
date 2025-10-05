@@ -73,13 +73,34 @@ else:
 st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
 st.title("Fat Boy Slim Competition")
 
-# --- Date Filter Selection ---
-time_range = st.radio(
-    "Select Time Range:",
-    options=["Last 14 Days", "Last 30 Days", "Competition Timeline"],
-    index=2,
-    horizontal=True
-)
+ # --- Controls Layout ---
+st.markdown("### Display Options")
+
+col1, col2, col3 = st.columns([2, 1, 1])
+
+with col1:
+    time_range = st.radio(
+        "Time Range",
+        options=["Last 14 Days", "Last 30 Days", "Competition Timeline"],
+        index=2,
+        horizontal=True
+    )
+
+with col2:
+    show_trendlines = st.checkbox("Show Trendlines", value=True)
+
+with col3:
+    if show_trendlines:
+        trend_type = st.radio(
+            "Trendline Type",
+            options=["Linear", "Smooth (LOWESS)"],
+            index=1,
+            horizontal=False
+        )
+    else:
+        trend_type = None
+
+st.markdown("---")
 
 # --- Constants ---
 kevin_start_weight = 78
@@ -129,17 +150,6 @@ except NameError:
 df_kevin_comp = df_kevin[(df_kevin["date"] >= goal_start_date) & (df_kevin["date"] <= goal_end_date)]
 df_simon_comp = df_simon[(df_simon["date"] >= goal_start_date) & (df_simon["date"] <= goal_end_date)] if simon_available else pd.DataFrame()
 
-show_trendlines = st.checkbox("Show Trendlines", value=True)
-
-if show_trendlines:
-    trend_type = st.radio(
-        "Trendline Type:",
-        options=["Linear", "Smooth (LOWESS)"],
-        index=1,
-        horizontal=True
-    )
-else:
-    trend_type = None
 
 # --- Compute Linear Trendline for Kevin ---
 def compute_trendline(df, goal_end_date, trend_type="Smooth (LOWESS)"):
