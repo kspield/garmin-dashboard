@@ -285,10 +285,12 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin
     y2_min -= y2_margin
     y2_max += y2_margin
 
-    # Debug print for tracing
-    print(f"Kevin goals {x1.date()}–{x2.date()}: {y1_start:.2f} → {y1_end:.2f}")
-    print(f"Simon goals {x1.date()}–{x2.date()}: {y2_start:.2f} → {y2_end:.2f}")
-    print(f"Computed aligned y1: [{y1_min:.2f}, {y1_max:.2f}], y2: [{y2_min:.2f}, {y2_max:.2f}]")
+    # Debug output in Streamlit
+    st.write(f"🧭 **Debug Info:** {x1.date()}–{x2.date()}")
+    st.write(f"Kevin goals: {y1_start:.2f} → {y1_end:.2f}")
+    st.write(f"Simon goals: {y2_start:.2f} → {y2_end:.2f}")
+    st.write(f"Computed aligned y1: [{y1_min:.2f}, {y1_max:.2f}], y2: [{y2_min:.2f}, {y2_max:.2f}]")
+    st.write("---")
 
     return [y1_min, y1_max], [y2_min, y2_max]
 
