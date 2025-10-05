@@ -72,7 +72,31 @@ else:
 # --- UI Layout ---
 st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
 
+
 st.title("Fat Boy Slim Competition")
+
+# --- Detect Mobile Device and Adjust Default Range ---
+import streamlit.components.v1 as components
+
+if "device_checked" not in st.session_state:
+    components.html(
+        """
+        <script>
+        const width = window.innerWidth;
+        if (width < 768) {
+            window.parent.postMessage({type: 'MOBILE_VIEW'}, '*');
+        } else {
+            window.parent.postMessage({type: 'DESKTOP_VIEW'}, '*');
+        }
+        </script>
+        """,
+        height=0,
+    )
+    st.session_state["device_checked"] = True
+
+# Handle device view preference (approximation for Streamlit Cloud)
+if "time_range" not in st.session_state:
+    st.session_state["time_range"] = "Last 30 Days" if st.runtime.scriptrunner.script_run_context.script_request_queue_context is not None else "Competition Timeline"
 
 # --- UI State Defaults (for controls rendered later) ---
 if "time_range" not in st.session_state:
@@ -189,7 +213,7 @@ fig = go.Figure()
 
 fig.add_trace(go.Scatter(
     x=df_kevin["date"], y=df_kevin["weight"],
-    mode="lines+markers", name="Kevin", yaxis="y1", connectgaps=True, showlegend=False
+    mode="lines+markers", name="Kevin", yaxis="y1", connectgaps=True, showlegend=True
 ))
 
 fig.add_trace(go.Scatter(
@@ -204,7 +228,7 @@ fig.add_trace(go.Scatter(
 if simon_available:
     fig.add_trace(go.Scatter(
         x=df_simon["date"], y=df_simon["weight"],
-        mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green"), connectgaps=True, showlegend=False
+        mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green"), connectgaps=True, showlegend=True
     ))
 
     # Simon goal trendline — do NOT include in legend
@@ -325,10 +349,10 @@ today = pd.Timestamp.today()
 
 if time_range == "Last 14 Days":
     x_min = (today - pd.Timedelta(days=14)).normalize()
-    x_max = today.normalize()
+    x_max = (today + pd.Timedelta(days=7)).normalize()
 elif time_range == "Last 30 Days":
     x_min = (today - pd.Timedelta(days=30)).normalize()
-    x_max = today.normalize()
+    x_max = (today + pd.Timedelta(days=10)).normalize()
 else:  # "Competition Timeline"
     x_min = goal_start_date
     x_max = goal_end_date
@@ -415,12 +439,8 @@ st.markdown("### Legend")
 st.markdown("""
 | Symbol | Description |
 |:--|:--|
-| 🟦 | **Kevin’s Weight** |
-| ⚫ | **Kevin’s Goal Line** |
-| 🟩 | **Simon’s Weight** |
-| ⚪ | **Simon’s Goal Line** |
-| 🔹 | **Kevin’s Trendline** |
-| 🔸 | **Simon’s Trendline** |
+| 🟦 | **Kevin** |
+| 🟩 | **Simon** |
 """)
 
 # --- Show message if Simon's data is missing or invalid ---
