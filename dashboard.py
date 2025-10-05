@@ -293,23 +293,50 @@ min_date = (
 today = pd.Timestamp.today()
 
 # --- Proportional zoom function ---
-def proportional_zoom(y1_range, y2_range, zoom_factor=0.8):
+def proportional_zoom(y1_range, y2_range, zoom_factor=0.8, data1=None, data2=None):
+    # Adjust both y-axes proportionally, ensuring all data remains visible
     if y2_range is None:
         return y1_range, y2_range
+    
+    # Compute centers and spans
     y1_mid = np.mean(y1_range)
     y2_mid = np.mean(y2_range)
     y1_span = (y1_range[1] - y1_range[0]) * zoom_factor
     y2_span = (y2_range[1] - y2_range[0]) * zoom_factor
-    return [y1_mid - y1_span / 2, y1_mid + y1_span / 2], [y2_mid - y2_span / 2, y2_mid + y2_span / 2]
+    
+    # Proposed new ranges
+    new_y1 = [y1_mid - y1_span / 2, y1_mid + y1_span / 2]
+    new_y2 = [y2_mid - y2_span / 2, y2_mid + y2_span / 2]
+    
+    # Ensure all data points remain visible
+    if data1 is not None and len(data1) > 0:
+        min_data1, max_data1 = np.min(data1), np.max(data1)
+        new_y1[0] = min(new_y1[0], min_data1 - 0.5)
+        new_y1[1] = max(new_y1[1], max_data1 + 0.5)
+    
+    if data2 is not None and len(data2) > 0:
+        min_data2, max_data2 = np.min(data2), np.max(data2)
+        new_y2[0] = min(new_y2[0], min_data2 - 0.5)
+        new_y2[1] = max(new_y2[1], max_data2 + 0.5)
+    
+    return new_y1, new_y2
 
 if time_range == "Last 14 Days":
     x_min = today - pd.Timedelta(days=14)
     x_max = today
-    y1_range, y2_range = proportional_zoom(y1_range, y2_range, zoom_factor=0.6)
+    y1_range, y2_range = proportional_zoom(
+        y1_range, y2_range, zoom_factor=0.6,
+        data1=df_kevin["weight"],
+        data2=df_simon["weight"] if simon_available else None
+    )
 elif time_range == "Last 30 Days":
     x_min = today - pd.Timedelta(days=30)
     x_max = today
-    y1_range, y2_range = proportional_zoom(y1_range, y2_range, zoom_factor=0.8)
+    y1_range, y2_range = proportional_zoom(
+        y1_range, y2_range, zoom_factor=0.8,
+        data1=df_kevin["weight"],
+        data2=df_simon["weight"] if simon_available else None
+    )
 else:  # "Competition Timeline"
     x_min = goal_start_date
     x_max = goal_end_date
