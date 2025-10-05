@@ -87,9 +87,10 @@ with col1:
     )
 
 with col2:
-    show_trendlines = st.checkbox("Show Trendlines", value=True)
+    time_placeholder = st.empty()  # keeps spacing consistent
 
 with col3:
+    show_trendlines = st.checkbox("Show Trendlines", value=True)
     if show_trendlines:
         trend_type = st.radio(
             "Trendline Type",
