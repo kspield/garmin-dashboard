@@ -361,47 +361,46 @@ elif not simon_available:
 
 
 # --- Simon Manual Entry Section ---
-st.subheader("Manual Weight Entry for Simon")
+with st.expander("➕ Add Manual Weight Entry for Simon"):
+    with st.form("simon_data_entry"):
+        weight = st.number_input("Weight (kg)", value=100.0, min_value=30.0, max_value=200.0, step=0.01, format="%.2f")
+        body_fat = st.number_input("Body Fat (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.1f")
+        date = st.date_input("Date of Measurement", value=datetime.date.today())
 
-with st.form("simon_data_entry"):
-    weight = st.number_input("Weight (kg)", value=100.0, min_value=30.0, max_value=200.0, step=0.01, format="%.2f")
-    body_fat = st.number_input("Body Fat (%)", min_value=0.0, max_value=100.0, step=0.1, format="%.1f")
-    date = st.date_input("Date of Measurement", value=datetime.date.today())
+        submitted = st.form_submit_button("Submit Data")
 
-    submitted = st.form_submit_button("Submit Data")
+        if submitted:
+            try:
+                date_str = date.isoformat()  # e.g., "2025-07-28"
+                body_fat_cleaned = None if body_fat == 0.0 else round(body_fat, 1)
+                weight_cleaned = round(weight, 2)
 
-    if submitted:
-        try:
-            date_str = date.isoformat()  # e.g., "2025-07-28"
-            body_fat_cleaned = None if body_fat == 0.0 else round(body_fat, 1)
-            weight_cleaned = round(weight, 2)
+                # Get current UTC timestamp
+                timestamp = datetime.datetime.utcnow().isoformat()
 
-            # Get current UTC timestamp
-            timestamp = datetime.datetime.utcnow().isoformat()
+                # Query existing entries for that day
+                collection_ref = db.collection("users").document("simon").collection("weight_data")
+                existing_docs = collection_ref.where("date", "==", date_str).stream()
+                count = sum(1 for _ in existing_docs)
 
-            # Query existing entries for that day
-            collection_ref = db.collection("users").document("simon").collection("weight_data")
-            existing_docs = collection_ref.where("date", "==", date_str).stream()
-            count = sum(1 for _ in existing_docs)
+                # Create doc ID like "2025-07-28_1", "2025-07-28_2", ...
+                doc_id = f"{date_str}_{count + 1}"
 
-            # Create doc ID like "2025-07-28_1", "2025-07-28_2", ...
-            doc_id = f"{date_str}_{count + 1}"
+                doc_ref = collection_ref.document(doc_id)
+                doc_ref.set({
+                    "date": date_str,
+                    "weight": weight_cleaned,
+                    "bodyFat": body_fat_cleaned,
+                    "entryTime": timestamp
+                })
 
-            doc_ref = collection_ref.document(doc_id)
-            doc_ref.set({
-                "date": date_str,
-                "weight": weight_cleaned,
-                "bodyFat": body_fat_cleaned,
-                "entryTime": timestamp
-            })
+                st.success(f"✅ Entry saved for {date_str} as #{count + 1}")
 
-            st.success(f"✅ Entry saved for {date_str} as #{count + 1}")
+                if hasattr(st, "experimental_rerun"):
+                    st.experimental_rerun()
 
-            if hasattr(st, "experimental_rerun"):
-                st.experimental_rerun()
-
-        except Exception as e:
-            st.error(f"❌ Failed to save data: {e}")
+            except Exception as e:
+                st.error(f"❌ Failed to save data: {e}")
 
 # --- Stats Section ---
 st.markdown('<div class="stats-container">', unsafe_allow_html=True)
