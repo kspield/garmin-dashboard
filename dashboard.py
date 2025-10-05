@@ -241,7 +241,7 @@ if show_trendlines and simon_available and len(simon_trend_x) > 0:
     ))
 
 # --- Utility: Aligned Axis Ranges ---
-def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin = 1):
+def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, df_kevin, df_simon):
     """
     Compute y-axis ranges so Kevin’s and Simon’s goal lines align perfectly
     between x1 and x2, with proportional scaling and margin.
@@ -274,6 +274,14 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin
     # Align Simon’s goal line so that start and end visually match Kevin’s
     y1_range = y1_start - y1_end
     y2_range = y2_start - y2_end
+
+    # Determine max visible weight for Kevin in selected range
+    mask = (df_kevin["date"] >= x1) & (df_kevin["date"] <= x2)
+    if not df_kevin.loc[mask].empty:
+        max_value = df_kevin.loc[mask, "weight"].max()
+    else:
+        max_value = max(y1_start, y1_end)
+    margin = max_value - y1_start + 0.2
 
     # Apply proportional margins
     y1_margin = margin
@@ -319,9 +327,11 @@ x1 = x_min
 x2 = x_max
 # Recompute aligned y-ranges for the selected window using GOAL lines (not trendlines)
 y1_range, y2_range = aligned_ranges_from_goals(
-    x1, x2, goal_dates_kevin, kevin_goal_weights, goal_dates_simon, simon_goal_weights
+    x1, x2, goal_dates_kevin, kevin_goal_weights, goal_dates_simon, simon_goal_weights, df_kevin, df_simon
 )
 x_range = [x_min, x_max]
+
+
 
 # --- Layout ---
 fig.update_layout(
