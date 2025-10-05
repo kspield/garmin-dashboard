@@ -241,7 +241,7 @@ if show_trendlines and simon_available and len(simon_trend_x) > 0:
     ))
 
 # --- Utility: Aligned Axis Ranges ---
-def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin_ratio=0.5):
+def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin_ratio=0.2):
     """
     Compute y-axis ranges so Kevin’s and Simon’s goal lines align perfectly
     between x1 and x2, with proportional scaling and margin.
