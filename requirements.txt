@@ -8,3 +8,4 @@ withings-api
 dotenv
 scipy
 numpy
+statsmodels
