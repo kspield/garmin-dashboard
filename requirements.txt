@@ -9,3 +9,4 @@ dotenv
 scipy
 numpy
 statsmodels
+streamlit_plotly_events
