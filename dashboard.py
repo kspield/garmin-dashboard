@@ -243,45 +243,52 @@ if show_trendlines and simon_available and len(simon_trend_x) > 0:
 # --- Utility: Aligned Axis Ranges ---
 def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin_ratio=0.05):
     """
-    Compute y-axis ranges so the two goal weight lines (Kevin and Simon)
-    sit perfectly on top of each other between x1 and x2, including a proportional margin.
+    Compute y-axis ranges so Kevin’s and Simon’s goal lines align perfectly
+    between x1 and x2, with proportional scaling and margin.
     """
+    # Validate inputs
     if len(goal1_x) == 0 or len(goal2_x) == 0:
+        print("⚠️ Empty goal arrays — cannot compute alignment.")
         return None, None
 
-    # Interpolate both goal lines at x1 and x2
-    y1_start, y1_end = np.interp([x1.toordinal(), x2.toordinal()],
-                                 [pd.Timestamp(xx).toordinal() for xx in goal1_x], goal1_y)
-    y2_start, y2_end = np.interp([x1.toordinal(), x2.toordinal()],
-                                 [pd.Timestamp(xx).toordinal() for xx in goal2_x], goal2_y)
+    # Ensure timestamps
+    x1, x2 = pd.Timestamp(x1), pd.Timestamp(x2)
 
-    # Compute spans and avoid division by zero
+    # Convert goal x-values safely to ordinal form (skip NaT)
+    goal1_ord = np.array([pd.Timestamp(xx).toordinal() for xx in goal1_x if not pd.isna(xx)])
+    goal2_ord = np.array([pd.Timestamp(xx).toordinal() for xx in goal2_x if not pd.isna(xx)])
+
+    # Interpolate goal weights at window edges
+    y1_start, y1_end = np.interp([x1.toordinal(), x2.toordinal()], goal1_ord, goal1_y)
+    y2_start, y2_end = np.interp([x1.toordinal(), x2.toordinal()], goal2_ord, goal2_y)
+
+    # Compute spans (weight differences over the range)
     span1 = y1_end - y1_start
     span2 = y2_end - y2_start
-    if span2 == 0:
-        span2 = 1e-9
+    if abs(span2) < 1e-9:
+        span2 = 1e-9  # avoid div-by-zero
 
-    # Scale Simon’s axis so slope and vertical scaling match Kevin’s
+    # Scale factor to align Simon’s line visually to Kevin’s
     scale = span1 / span2
 
-    # Midpoints and half spans
-    y1_mid = (y1_start + y1_end) / 2
-    y2_mid = (y2_start + y2_end) / 2
-    y1_halfspan = abs(span1) / 2
-    y2_halfspan = abs(span2 * scale) / 2
+    # Align Simon’s goal line so that start and end visually match Kevin’s
+    y1_min, y1_max = sorted([y1_start, y1_end])
+    y1_range = y1_max - y1_min
+    y2_min = (y2_start - np.mean([y2_start, y2_end])) * scale + np.mean([y1_start, y1_end])
+    y2_max = (y2_end - np.mean([y2_start, y2_end])) * scale + np.mean([y1_start, y1_end])
 
-    # Apply proportional margin (scaled equally)
-    y1_margin = y1_halfspan * margin_ratio
-    y2_margin = y2_halfspan * margin_ratio
+    # Apply proportional margins
+    y1_margin = y1_range * margin_ratio
+    y2_margin = (y2_max - y2_min) * margin_ratio
+    y1_min -= y1_margin
+    y1_max += y1_margin
+    y2_min -= y2_margin
+    y2_max += y2_margin
 
-    y1_min = y1_mid - y1_halfspan - y1_margin
-    y1_max = y1_mid + y1_halfspan + y1_margin
-    y2_min = y2_mid - y2_halfspan - y2_margin
-    y2_max = y2_mid + y2_halfspan + y2_margin
-
-    print(f"Kevin goals at {x1.date()}–{x2.date()}: {y1_start:.2f} → {y1_end:.2f}")
-    print(f"Simon goals at {x1.date()}–{x2.date()}: {y2_start:.2f} → {y2_end:.2f}")
-
+    # Debug print for tracing
+    print(f"Kevin goals {x1.date()}–{x2.date()}: {y1_start:.2f} → {y1_end:.2f}")
+    print(f"Simon goals {x1.date()}–{x2.date()}: {y2_start:.2f} → {y2_end:.2f}")
+    print(f"Computed aligned y1: [{y1_min:.2f}, {y1_max:.2f}], y2: [{y2_min:.2f}, {y2_max:.2f}]")
 
     return [y1_min, y1_max], [y2_min, y2_max]
 
