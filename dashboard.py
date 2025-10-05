@@ -129,13 +129,17 @@ except NameError:
 df_kevin_comp = df_kevin[(df_kevin["date"] >= goal_start_date) & (df_kevin["date"] <= goal_end_date)]
 df_simon_comp = df_simon[(df_simon["date"] >= goal_start_date) & (df_simon["date"] <= goal_end_date)] if simon_available else pd.DataFrame()
 
-# New radio button for trendline type
-trend_type = st.radio(
-    "Select Trendline Type:",
-    options=["Linear", "Smooth (LOWESS)"],
-    index=1,
-    horizontal=True
-)
+show_trendlines = st.checkbox("Show Trendlines", value=True)
+
+if show_trendlines:
+    trend_type = st.radio(
+        "Trendline Type:",
+        options=["Linear", "Smooth (LOWESS)"],
+        index=1,
+        horizontal=True
+    )
+else:
+    trend_type = None
 
 # --- Compute Linear Trendline for Kevin ---
 def compute_trendline(df, goal_end_date, trend_type="Smooth (LOWESS)"):
@@ -183,8 +187,6 @@ def compute_trendline(df, goal_end_date, trend_type="Smooth (LOWESS)"):
 
 kevin_trend_x, kevin_trend_y = compute_trendline(df_kevin_comp, goal_end_date, trend_type)
 simon_trend_x, simon_trend_y = compute_trendline(df_simon_comp, goal_end_date, trend_type)
-
-show_trendlines = st.checkbox("Show Linear Trendlines", value=True)
 
 # --- Plot ---
 fig = go.Figure()
