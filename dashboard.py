@@ -372,8 +372,15 @@ fig.update_layout(
         type="date"
     ),
     legend=dict(
-        x=0.99, y=0.01, xanchor="right", yanchor="bottom",
-        bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="center",
+        x=0.5,
+        bgcolor="rgba(255,255,255,0.6)",
+        bordercolor="gray",
+        borderwidth=1,
+        font=dict(size=10)
     )
 )
 
