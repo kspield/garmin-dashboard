@@ -291,15 +291,16 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, df_kev
     margin1 = max_value - y1_start + 0.2
     margin2 = y1_end - min_value + 0.2
 
-    margin = max(margin1,margin2)
-
     # Apply proportional margins
-    y1_margin = margin
-    y2_margin = y2_range/y1_range * y1_margin
-    y2_min = y2_end - y2_margin
-    y2_max = y2_start + y2_margin
-    y1_min = y1_end - y1_margin
-    y1_max = y1_start + y1_margin
+    y1_margin1 = margin1
+    y1_margin2 = margin2
+    y1_min = y1_end - y1_margin2
+    y1_max = y1_start + y1_margin1
+
+    y2_margin1 = y2_range/y1_range * y1_margin1
+    y2_margin2 = y2_range/y1_range * y1_margin2
+    y2_min = y2_end - y2_margin2
+    y2_max = y2_start + y2_margin1
 
     # Debug output in Streamlit
     st.write(f"🧭 **Debug Info:** {x1.date()}–{x2.date()}")
