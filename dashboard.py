@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_plotly_events import plotly_events
 import pandas as pd
 import numpy as np
 import os
@@ -387,6 +388,36 @@ if y2_range is not None:
     )
 
 # fig.update_yaxes(autorange=True)
+
+
+event_data = plotly_events(
+    fig,
+    click_event=False,
+    hover_event=False,
+    select_event=False,
+    relayout_event=True,
+    key="fatboyslim_plot"
+)
+
+if event_data and "xaxis.range[0]" in event_data[0]:
+    x_min = pd.to_datetime(event_data[0]["xaxis.range[0]"])
+    x_max = pd.to_datetime(event_data[0]["xaxis.range[1]"])
+
+    # Filter visible data for both users
+    df_kevin_visible = df_kevin[(df_kevin["date"] >= x_min) & (df_kevin["date"] <= x_max)]
+    df_simon_visible = df_simon[(df_simon["date"] >= x_min) & (df_simon["date"] <= x_max)] if simon_available else pd.DataFrame()
+
+    # Recalculate aligned ranges for visible window
+    y1_range, y2_range = aligned_ranges(
+        kevin_goal_weights, df_kevin_visible["weight"],
+        simon_goals if simon_goals is not None and len(simon_goals) > 0 else None,
+        df_simon_visible["weight"] if simon_available and not df_simon_visible.empty else None
+    )
+
+    # Update y-axis ranges dynamically
+    fig.update_yaxes(range=y1_range, secondary_y=False)
+    if y2_range is not None:
+        fig.update_yaxes(range=y2_range, secondary_y=True)
 
 st.plotly_chart(fig, use_container_width=True)
 
