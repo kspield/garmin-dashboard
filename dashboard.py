@@ -279,6 +279,10 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin
     y2_min = y2_mid - y2_halfspan - y2_margin
     y2_max = y2_mid + y2_halfspan + y2_margin
 
+    print(f"Kevin goals at {x1.date()}–{x2.date()}: {y1_start:.2f} → {y1_end:.2f}")
+    print(f"Simon goals at {x1.date()}–{x2.date()}: {y2_start:.2f} → {y2_end:.2f}")
+
+
     return [y1_min, y1_max], [y2_min, y2_max]
 
 import numpy as np  # ensure np is imported for proportional zoom
@@ -325,13 +329,6 @@ fig.update_layout(
     xaxis=dict(
         title="Date",
         range=x_range,  # Keep manual range logic
-        rangeslider=dict(visible=True),
-        rangeselector=dict(
-            buttons=list([
-                dict(count=14, label="14d", step="day", stepmode="backward"),
-                dict(count=30, label="30d", step="day", stepmode="backward"),
-                dict(step="all", label="All")
-            ])
         ),
         type="date"
     ),
