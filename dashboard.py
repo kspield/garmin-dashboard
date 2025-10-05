@@ -71,7 +71,21 @@ else:
 
 # --- UI Layout ---
 st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
+
 st.title("Fat Boy Slim Competition")
+
+# --- UI State Defaults (for controls rendered later) ---
+if "time_range" not in st.session_state:
+    st.session_state["time_range"] = "Competition Timeline"
+if "show_trendlines" not in st.session_state:
+    st.session_state["show_trendlines"] = True
+if "trend_type" not in st.session_state:
+    st.session_state["trend_type"] = "Smooth (LOWESS)"
+
+# Use session state values throughout the script
+time_range = st.session_state["time_range"]
+show_trendlines = st.session_state["show_trendlines"]
+trend_type = st.session_state["trend_type"]
 
 
 # --- Constants ---
@@ -374,17 +388,19 @@ with col1:
         "Time Range",
         options=["Last 14 Days", "Last 30 Days", "Competition Timeline"],
         index=2,
-        horizontal=True
+        horizontal=True,
+        key="time_range"
     )
 
 with col3:
-    show_trendlines = st.checkbox("Show Trendlines", value=True)
+    show_trendlines = st.checkbox("Show Trendlines", value=True, key="show_trendlines")
     if show_trendlines:
         trend_type = st.radio(
             "Trendline Type",
             options=["Linear", "Smooth (LOWESS)"],
             index=1,
-            horizontal=False
+            horizontal=False,
+            key="trend_type"
         )
     else:
         trend_type = None
