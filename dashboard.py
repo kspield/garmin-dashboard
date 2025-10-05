@@ -242,36 +242,29 @@ if show_trendlines and simon_available and len(simon_trend_x) > 0:
 
 # --- Utility: Aligned Axis Ranges ---
 def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
-    # Kevin's Y-axis
-    all1 = pd.concat([data1, pd.Series(goal1)])
+    if data1 is None or len(data1) == 0:
+        return [min(goal1), max(goal1)], None
+
+    # Combine goal + data
+    all1 = pd.concat([pd.Series(goal1), pd.Series(data1)])
     min1, max1 = all1.min(), all1.max()
     margin1 = (max1 - min1) * margin_ratio
     y1_min = min1 - margin1
     y1_max = max1 + margin1
 
-    # Return only y1 range if Simon data is missing
-    if goal2 is None or len(goal2) == 0 or data2 is None or data2.empty:
+    if goal2 is None or data2 is None or len(data2) == 0:
         return [y1_min, y1_max], None
 
-    # Kevin's normalized positions
-    k_start, k_end = goal1[0], goal1[-1]
-    norm_start = (k_start - y1_min) / (y1_max - y1_min)
-    norm_end   = (k_end - y1_min) / (y1_max - y1_min)
+    # Combine goal + data for Simon
+    all2 = pd.concat([pd.Series(goal2), pd.Series(data2)])
+    min2, max2 = all2.min(), all2.max()
 
-    # Simon's goal line values
-    s_start, s_end = goal2[0], goal2[-1]
-
-    # Solve system of equations:
-    # (s_start - y2_min) / (y2_max - y2_min) = norm_start
-    # (s_end - y2_min) / (y2_max - y2_min) = norm_end
-
-    if norm_start == norm_end:
-        # Avoid division by zero in edge cases (e.g., flat goal line)
-        y2_min = min(s_start, s_end) - 1
-        y2_max = max(s_start, s_end) + 1
-    else:
-        y2_min = (s_end * norm_start - s_start * norm_end) / (norm_start - norm_end)
-        y2_max = y2_min + (s_start - y2_min) / norm_start
+    # Compute proportional alignment relative to Kevin's axis span
+    ratio = (y1_max - y1_min) / (max2 - min2) if (max2 - min2) != 0 else 1
+    mid2 = (min2 + max2) / 2
+    span2 = (max2 - min2) * ratio / 2
+    y2_min = mid2 - span2
+    y2_max = mid2 + span2
 
     return [y1_min, y1_max], [y2_min, y2_max]
 
