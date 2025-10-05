@@ -272,18 +272,16 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, margin
     scale = span1 / span2
 
     # Align Simon’s goal line so that start and end visually match Kevin’s
-    y1_min, y1_max = sorted([y1_start, y1_end])
-    y1_range = y1_max - y1_min
-    y2_min = (y2_start - np.mean([y2_start, y2_end])) * scale + np.mean([y1_start, y1_end])
-    y2_max = (y2_end - np.mean([y2_start, y2_end])) * scale + np.mean([y1_start, y1_end])
+    y1_range = y1_start - y1_end
+    y2_range = y2_start - y2_end
 
     # Apply proportional margins
     y1_margin = y1_range * margin_ratio
-    y2_margin = (y2_max - y2_min) * margin_ratio
-    y1_min -= y1_margin
-    y1_max += y1_margin
-    y2_min -= y2_margin
-    y2_max += y2_margin
+    y2_margin = y2_range/y1_range * y1_margin
+    y1_min = y2_end - y2_margin
+    y1_max = y2_start + y2_margin
+    y2_min = y1_end - y1_margin
+    y2_max = y1_start + y1_margin
 
     # Debug output in Streamlit
     st.write(f"🧭 **Debug Info:** {x1.date()}–{x2.date()}")
