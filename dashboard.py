@@ -303,12 +303,12 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, df_kev
     y2_min = y2_end - y2_margin2
     y2_max = y2_start + y2_margin1
 
-    # Debug output in Streamlit
-    st.write(f"🧭 **Debug Info:** {x1.date()}–{x2.date()}")
-    st.write(f"Kevin goals: {y1_start:.2f} → {y1_end:.2f}")
-    st.write(f"Simon goals: {y2_start:.2f} → {y2_end:.2f}")
-    st.write(f"Computed aligned y1: [{y1_min:.2f}, {y1_max:.2f}], y2: [{y2_min:.2f}, {y2_max:.2f}]")
-    st.write("---")
+    # # Debug output in Streamlit
+    # st.write(f"🧭 **Debug Info:** {x1.date()}–{x2.date()}")
+    # st.write(f"Kevin goals: {y1_start:.2f} → {y1_end:.2f}")
+    # st.write(f"Simon goals: {y2_start:.2f} → {y2_end:.2f}")
+    # st.write(f"Computed aligned y1: [{y1_min:.2f}, {y1_max:.2f}], y2: [{y2_min:.2f}, {y2_max:.2f}]")
+    # st.write("---")
 
     return [y1_min, y1_max], [y2_min, y2_max]
 
