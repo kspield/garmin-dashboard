@@ -9,6 +9,7 @@ from google.cloud import firestore
 from google.api_core.exceptions import GoogleAPIError
 from firebase_admin import credentials, firestore
 from scipy.stats import linregress
+from statsmodels.nonparametric.smoothers_lowess import lowess
 
 
 # Firebase init
@@ -143,19 +144,15 @@ def compute_trendline(df, goal_end_date):
     x = x[mask]
     y = y[mask]
 
-    if len(x) < 2 or np.all(x == x[0]) or np.all(y == y[0]):
+    if len(x) < 3:
         return [], []
 
     try:
-        coeffs = np.polyfit(x, y, deg=1)  # Linear regression
-        m, b = coeffs
-
-        end_x = goal_end_date.toordinal()  # ✅ FIXED HERE
-        trend_x = np.array([x[0], end_x])
-        trend_y = m * trend_x + b
-
-        trend_x_dates = [datetime.date.fromordinal(int(d)) for d in trend_x]
-        return trend_x_dates, trend_y
+        # Apply LOWESS smoothing
+        smoothed = lowess(y, x, frac=0.3, it=0)
+        trend_x = [datetime.date.fromordinal(int(xx)) for xx in smoothed[:, 0]]
+        trend_y = smoothed[:, 1]
+        return trend_x, trend_y
     except Exception as e:
         print(f"⚠️ Trendline error: {e}")
         return [], []
@@ -424,4 +421,3 @@ if simon_available and simon_start_weight is None:
     st.warning("Simon's starting weight could not be determined. No data near the goal start date.")
 
 st.markdown('</div>', unsafe_allow_html=True)
-
