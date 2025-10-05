@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_plotly_events import plotly_events
 import pandas as pd
 import numpy as np
 import os
@@ -387,37 +386,54 @@ if y2_range is not None:
         )
     )
 
-# fig.update_yaxes(autorange=True)
 
+# --- Native Streamlit/Plotly relayout event handling ---
+import streamlit.components.v1 as components
+import json
 
-event_data = plotly_events(
-    fig,
-    click_event=False,
-    hover_event=False,
-    select_event=False,
-    relayout_event=True,
-    key="fatboyslim_plot"
+# Embed Plotly figure and listen for relayout events
+plot_html = fig.to_html(include_plotlyjs="cdn", full_html=False)
+components.html(
+    f"""
+    <div id="plotly-container">{plot_html}</div>
+    <script>
+    const plot = document.querySelector("#plotly-container").children[0];
+    if (plot && plot.on) {{
+      plot.on('plotly_relayout', function(eventData) {{
+          const streamlitData = {{
+              'xaxis.range[0]': eventData['xaxis.range[0]'],
+              'xaxis.range[1]': eventData['xaxis.range[1]']
+          }};
+          window.parent.postMessage({{ isStreamlitMessage: true, type: 'streamlit:setComponentValue', value: JSON.stringify(streamlitData) }}, '*');
+      }});
+    }}
+    </script>
+    """,
+    height=600
 )
 
-if event_data and "xaxis.range[0]" in event_data[0]:
-    x_min = pd.to_datetime(event_data[0]["xaxis.range[0]"])
-    x_max = pd.to_datetime(event_data[0]["xaxis.range[1]"])
+# Handle relayout updates
+if "relayout_data" in st.session_state:
+    try:
+        data = json.loads(st.session_state["relayout_data"])
+        if "xaxis.range[0]" in data:
+            x_min = pd.to_datetime(data["xaxis.range[0]"])
+            x_max = pd.to_datetime(data["xaxis.range[1]"])
 
-    # Filter visible data for both users
-    df_kevin_visible = df_kevin[(df_kevin["date"] >= x_min) & (df_kevin["date"] <= x_max)]
-    df_simon_visible = df_simon[(df_simon["date"] >= x_min) & (df_simon["date"] <= x_max)] if simon_available else pd.DataFrame()
+            df_kevin_visible = df_kevin[(df_kevin["date"] >= x_min) & (df_kevin["date"] <= x_max)]
+            df_simon_visible = df_simon[(df_simon["date"] >= x_min) & (df_simon["date"] <= x_max)] if simon_available else pd.DataFrame()
 
-    # Recalculate aligned ranges for visible window
-    y1_range, y2_range = aligned_ranges(
-        kevin_goal_weights, df_kevin_visible["weight"],
-        simon_goals if simon_goals is not None and len(simon_goals) > 0 else None,
-        df_simon_visible["weight"] if simon_available and not df_simon_visible.empty else None
-    )
+            y1_range, y2_range = aligned_ranges(
+                kevin_goal_weights, df_kevin_visible["weight"],
+                simon_goals if simon_goals is not None and len(simon_goals) > 0 else None,
+                df_simon_visible["weight"] if simon_available and not df_simon_visible.empty else None
+            )
 
-    # Update y-axis ranges dynamically
-    fig.update_yaxes(range=y1_range, secondary_y=False)
-    if y2_range is not None:
-        fig.update_yaxes(range=y2_range, secondary_y=True)
+            fig.update_yaxes(range=y1_range, secondary_y=False)
+            if y2_range is not None:
+                fig.update_yaxes(range=y2_range, secondary_y=True)
+    except Exception as e:
+        st.warning(f"Failed to update axis ranges from relayout event: {e}")
 
 st.plotly_chart(fig, use_container_width=True)
 
