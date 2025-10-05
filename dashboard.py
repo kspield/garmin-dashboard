@@ -285,6 +285,7 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, df_kev
     mask = (df_kevin["date"] >= x1) & (df_kevin["date"] <= x2)
     if not df_kevin.loc[mask].empty:
         min_value = df_kevin.loc[mask, "weight"].min()
+        min_value = min(min_value, y1_end)
     else:
         min_value = min(y1_start, y1_end)
 
