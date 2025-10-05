@@ -189,7 +189,7 @@ fig = go.Figure()
 
 fig.add_trace(go.Scatter(
     x=df_kevin["date"], y=df_kevin["weight"],
-    mode="lines+markers", name="Kevin", yaxis="y1", connectgaps=True
+    mode="lines+markers", name="Kevin", yaxis="y1", connectgaps=True, showlegend=False
 ))
 
 fig.add_trace(go.Scatter(
@@ -197,14 +197,14 @@ fig.add_trace(go.Scatter(
     mode="lines", name="Goal Trendline",
     line=dict(dash="dot", color="gray"),
     yaxis="y1",
-    showlegend=True
+    showlegend=False
 ))
 
 
 if simon_available:
     fig.add_trace(go.Scatter(
         x=df_simon["date"], y=df_simon["weight"],
-        mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green"), connectgaps=True
+        mode="lines+markers", name="Simon", yaxis="y2", line=dict(color="green"), connectgaps=True, showlegend=False
     ))
 
     # Simon goal trendline — do NOT include in legend
@@ -223,7 +223,8 @@ if show_trendlines and len(kevin_trend_x) > 0:
         mode="lines",
         line=dict(dash="dot", color="blue"),
         name="Kevin Linear Trend",
-        yaxis="y1"
+        yaxis="y1",
+        showlegend=False
     ))
 
 # Add Simon linear trendline
@@ -233,7 +234,8 @@ if show_trendlines and simon_available and len(simon_trend_x) > 0:
         mode="lines",
         line=dict(dash="dot", color="green"),
         name="Simon Linear Trend",
-        yaxis="y2"
+        yaxis="y2",
+        showlegend=False
     ))
 
 # --- Utility: Aligned Axis Ranges ---
@@ -343,6 +345,7 @@ x_range = [x_min, x_max]
 
 # --- Layout ---
 fig.update_layout(
+    showlegend=False,
     height=500,
     yaxis=dict(
         title="Kevin",
