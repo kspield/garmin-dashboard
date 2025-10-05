@@ -73,35 +73,6 @@ else:
 st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
 st.title("Fat Boy Slim Competition")
 
- # --- Controls Layout ---
-st.markdown("### Display Options")
-
-col1, col2, col3 = st.columns([2, 1, 1])
-
-with col1:
-    time_range = st.radio(
-        "Time Range",
-        options=["Last 14 Days", "Last 30 Days", "Competition Timeline"],
-        index=2,
-        horizontal=True
-    )
-
-with col2:
-    time_placeholder = st.empty()  # keeps spacing consistent
-
-with col3:
-    show_trendlines = st.checkbox("Show Trendlines", value=True)
-    if show_trendlines:
-        trend_type = st.radio(
-            "Trendline Type",
-            options=["Linear", "Smooth (LOWESS)"],
-            index=1,
-            horizontal=False
-        )
-    else:
-        trend_type = None
-
-st.markdown("---")
 
 # --- Constants ---
 kevin_start_weight = 78
@@ -370,17 +341,6 @@ fig.update_layout(
         title="Date",
         range=x_range,  # Keep manual range logic
         type="date"
-    ),
-    legend=dict(
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="center",
-        x=0.5,
-        bgcolor="rgba(255,255,255,0.6)",
-        bordercolor="gray",
-        borderwidth=1,
-        font=dict(size=10)
     )
 )
 
@@ -401,6 +361,48 @@ if y2_range is not None:
 
 
 st.plotly_chart(fig, use_container_width=True)
+
+st.markdown("---")
+
+# --- Controls & Legend BELOW chart ---
+st.markdown("### Display Options")
+
+col1, col2, col3 = st.columns([2, 1, 1])
+
+with col1:
+    time_range = st.radio(
+        "Time Range",
+        options=["Last 14 Days", "Last 30 Days", "Competition Timeline"],
+        index=2,
+        horizontal=True
+    )
+
+with col3:
+    show_trendlines = st.checkbox("Show Trendlines", value=True)
+    if show_trendlines:
+        trend_type = st.radio(
+            "Trendline Type",
+            options=["Linear", "Smooth (LOWESS)"],
+            index=1,
+            horizontal=False
+        )
+    else:
+        trend_type = None
+
+st.markdown("---")
+
+# --- Legend below controls ---
+st.markdown("### Legend")
+st.markdown("""
+| Symbol | Description |
+|:--|:--|
+| 🟦 | **Kevin’s Weight** |
+| ⚫ | **Kevin’s Goal Line** |
+| 🟩 | **Simon’s Weight** |
+| ⚪ | **Simon’s Goal Line** |
+| 🔹 | **Kevin’s Trendline** |
+| 🔸 | **Simon’s Trendline** |
+""")
 
 # --- Show message if Simon's data is missing or invalid ---
 if simon_available and simon_start_weight is None:
