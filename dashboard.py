@@ -241,38 +241,46 @@ if show_trendlines and simon_available and len(simon_trend_x) > 0:
     ))
 
 # --- Utility: Aligned Axis Ranges ---
-def aligned_ranges(goal1, data1, goal2, data2, margin_ratio=0.05):
-    if data1 is None or len(data1) == 0:
-        return [min(goal1), max(goal1)], None
+def aligned_ranges_from_trends(x1, x2, trend1_x, trend1_y, trend2_x, trend2_y, margin_ratio=0.05):
+    """
+    Compute y-axis ranges for both axes so that the two trendlines sit perfectly on top
+    of each other between x1 and x2, including a proportional margin.
+    """
+    if len(trend1_x) == 0 or len(trend2_x) == 0:
+        return None, None
 
-    # Combine goal + data
-    all1 = pd.concat([pd.Series(goal1), pd.Series(data1)])
-    min1, max1 = all1.min(), all1.max()
-    margin1 = (max1 - min1) * margin_ratio
-    y1_min = min1 - margin1
-    y1_max = max1 + margin1
+    # Interpolate both trendlines at x1 and x2
+    y1_start, y1_end = np.interp([x1.toordinal(), x2.toordinal()], 
+                                 [pd.Timestamp(xx).toordinal() for xx in trend1_x], trend1_y)
+    y2_start, y2_end = np.interp([x1.toordinal(), x2.toordinal()], 
+                                 [pd.Timestamp(xx).toordinal() for xx in trend2_x], trend2_y)
 
-    if goal2 is None or data2 is None or len(data2) == 0:
-        return [y1_min, y1_max], None
+    # Compute spans
+    span1 = y1_end - y1_start
+    span2 = y2_end - y2_start
+    if span2 == 0:
+        span2 = 1e-9
 
-    # Combine goal + data for Simon
-    all2 = pd.concat([pd.Series(goal2), pd.Series(data2)])
-    min2, max2 = all2.min(), all2.max()
+    # Scale Simon’s axis so slope and vertical scaling match Kevin’s
+    scale = span1 / span2
 
-    # Compute proportional alignment relative to Kevin's axis span
-    ratio = (y1_max - y1_min) / (max2 - min2) if (max2 - min2) != 0 else 1
-    mid2 = (min2 + max2) / 2
-    span2 = (max2 - min2) * ratio / 2
-    y2_min = mid2 - span2
-    y2_max = mid2 + span2
+    # Center points and half spans
+    y1_mid = (y1_start + y1_end) / 2
+    y2_mid = (y2_start + y2_end) / 2
+
+    y1_halfspan = abs(span1) / 2
+    y2_halfspan = abs(span2 * scale) / 2
+
+    # Apply proportional margin
+    y1_margin = y1_halfspan * margin_ratio
+    y2_margin = y2_halfspan * margin_ratio
+
+    y1_min = y1_mid - y1_halfspan - y1_margin
+    y1_max = y1_mid + y1_halfspan + y1_margin
+    y2_min = y2_mid - y2_halfspan - y2_margin
+    y2_max = y2_mid + y2_halfspan + y2_margin
 
     return [y1_min, y1_max], [y2_min, y2_max]
-
-y1_range, y2_range = aligned_ranges(
-    kevin_goal_weights, df_kevin["weight"],
-    simon_goals if simon_goals is not None and len(simon_goals) > 0 else None,
-    df_simon["weight"] if simon_available and not df_simon.empty else None
-)
 
 import numpy as np  # ensure np is imported for proportional zoom
 
@@ -285,56 +293,23 @@ min_date = (
 
 today = pd.Timestamp.today()
 
-# --- Proportional zoom function ---
-def proportional_zoom(y1_range, y2_range, zoom_factor=0.8, data1=None, data2=None):
-    # Adjust both y-axes proportionally, ensuring all data remains visible
-    if y2_range is None:
-        return y1_range, y2_range
-    
-    # Compute centers and spans
-    y1_mid = np.mean(y1_range)
-    y2_mid = np.mean(y2_range)
-    y1_span = (y1_range[1] - y1_range[0]) * zoom_factor
-    y2_span = (y2_range[1] - y2_range[0]) * zoom_factor
-    
-    # Proposed new ranges
-    new_y1 = [y1_mid - y1_span / 2, y1_mid + y1_span / 2]
-    new_y2 = [y2_mid - y2_span / 2, y2_mid + y2_span / 2]
-    
-    # Ensure all data points remain visible
-    if data1 is not None and len(data1) > 0:
-        min_data1, max_data1 = np.min(data1), np.max(data1)
-        new_y1[0] = min(new_y1[0], min_data1 - 0.5)
-        new_y1[1] = max(new_y1[1], max_data1 + 0.5)
-    
-    if data2 is not None and len(data2) > 0:
-        min_data2, max_data2 = np.min(data2), np.max(data2)
-        new_y2[0] = min(new_y2[0], min_data2 - 0.5)
-        new_y2[1] = max(new_y2[1], max_data2 + 0.5)
-    
-    return new_y1, new_y2
+
 
 if time_range == "Last 14 Days":
-    x_min = today - pd.Timedelta(days=14)
-    x_max = today
-    y1_range, y2_range = proportional_zoom(
-        y1_range, y2_range, zoom_factor=0.6,
-        data1=df_kevin["weight"],
-        data2=df_simon["weight"] if simon_available else None
-    )
+    x_min = (today - pd.Timedelta(days=14)).normalize()
+    x_max = today.normalize()
 elif time_range == "Last 30 Days":
-    x_min = today - pd.Timedelta(days=30)
-    x_max = today
-    y1_range, y2_range = proportional_zoom(
-        y1_range, y2_range, zoom_factor=0.8,
-        data1=df_kevin["weight"],
-        data2=df_simon["weight"] if simon_available else None
-    )
+    x_min = (today - pd.Timedelta(days=30)).normalize()
+    x_max = today.normalize()
 else:  # "Competition Timeline"
     x_min = goal_start_date
     x_max = goal_end_date
 
-x_range = [pd.to_datetime(x_min).normalize(), pd.to_datetime(x_max).normalize()]
+# Recompute aligned y-ranges for the selected window using trendlines
+y1_range, y2_range = aligned_ranges_from_trends(
+    x_min, x_max, kevin_trend_x, kevin_trend_y, simon_trend_x, simon_trend_y
+)
+x_range = [x_min, x_max]
 
 # --- Layout ---
 fig.update_layout(
@@ -380,53 +355,6 @@ if y2_range is not None:
     )
 
 
-# --- Native Streamlit/Plotly relayout event handling ---
-import streamlit.components.v1 as components
-import json
-
-# Embed Plotly figure and listen for relayout events
-plot_html = fig.to_html(include_plotlyjs="cdn", full_html=False)
-components.html(
-    f"""
-    <div id="plotly-container">{plot_html}</div>
-    <script>
-    const plot = document.querySelector("#plotly-container").children[0];
-    if (plot && plot.on) {{
-      plot.on('plotly_relayout', function(eventData) {{
-          const streamlitData = {{
-              'xaxis.range[0]': eventData['xaxis.range[0]'],
-              'xaxis.range[1]': eventData['xaxis.range[1]']
-          }};
-          window.parent.postMessage({{ isStreamlitMessage: true, type: 'streamlit:setComponentValue', value: JSON.stringify(streamlitData) }}, '*');
-      }});
-    }}
-    </script>
-    """,
-    height=600
-)
-
-# Handle relayout updates
-if "relayout_data" in st.session_state:
-    try:
-        data = json.loads(st.session_state["relayout_data"])
-        if "xaxis.range[0]" in data:
-            x_min = pd.to_datetime(data["xaxis.range[0]"])
-            x_max = pd.to_datetime(data["xaxis.range[1]"])
-
-            df_kevin_visible = df_kevin[(df_kevin["date"] >= x_min) & (df_kevin["date"] <= x_max)]
-            df_simon_visible = df_simon[(df_simon["date"] >= x_min) & (df_simon["date"] <= x_max)] if simon_available else pd.DataFrame()
-
-            y1_range, y2_range = aligned_ranges(
-                kevin_goal_weights, df_kevin_visible["weight"],
-                simon_goals if simon_goals is not None and len(simon_goals) > 0 else None,
-                df_simon_visible["weight"] if simon_available and not df_simon_visible.empty else None
-            )
-
-            fig.update_yaxes(range=y1_range, secondary_y=False)
-            if y2_range is not None:
-                fig.update_yaxes(range=y2_range, secondary_y=True)
-    except Exception as e:
-        st.warning(f"Failed to update axis ranges from relayout event: {e}")
 
 st.plotly_chart(fig, use_container_width=True)
 
