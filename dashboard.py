@@ -290,18 +290,17 @@ min_date = (
 
 today = pd.Timestamp.today()
 
-# Commented out manual x_range definition and usage
-# if time_range == "Last 14 Days":
-#     x_min = today - pd.Timedelta(days=14)
-#     x_max = today
-# elif time_range == "Last 30 Days":
-#     x_min = today - pd.Timedelta(days=30)
-#     x_max = today
-# else:
-#     x_min = goal_start_date 
-#     x_max = goal_end_date
+if time_range == "Last 14 Days":
+    x_min = today - pd.Timedelta(days=14)
+    x_max = today
+elif time_range == "Last 30 Days":
+    x_min = today - pd.Timedelta(days=30)
+    x_max = today
+else:  # "Competition Timeline"
+    x_min = goal_start_date
+    x_max = goal_end_date
 
-# x_range = [x_min.normalize(), x_max.normalize()]
+x_range = [pd.to_datetime(x_min).normalize(), pd.to_datetime(x_max).normalize()]
 
 # --- Layout ---
 fig.update_layout(
