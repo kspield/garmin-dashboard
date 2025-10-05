@@ -129,8 +129,16 @@ except NameError:
 df_kevin_comp = df_kevin[(df_kevin["date"] >= goal_start_date) & (df_kevin["date"] <= goal_end_date)]
 df_simon_comp = df_simon[(df_simon["date"] >= goal_start_date) & (df_simon["date"] <= goal_end_date)] if simon_available else pd.DataFrame()
 
+# New radio button for trendline type
+trend_type = st.radio(
+    "Select Trendline Type:",
+    options=["Linear", "Smooth (LOWESS)"],
+    index=1,
+    horizontal=True
+)
+
 # --- Compute Linear Trendline for Kevin ---
-def compute_trendline(df, goal_end_date):
+def compute_trendline(df, goal_end_date, trend_type="Smooth (LOWESS)"):
     if df.empty:
         return [], []
 
@@ -148,17 +156,33 @@ def compute_trendline(df, goal_end_date):
         return [], []
 
     try:
-        # Apply LOWESS smoothing
-        smoothed = lowess(y, x, frac=0.3, it=0)
-        trend_x = [datetime.date.fromordinal(int(xx)) for xx in smoothed[:, 0]]
-        trend_y = smoothed[:, 1]
-        return trend_x, trend_y
+        if trend_type == "Linear":
+            coeffs = np.polyfit(x, y, deg=1)
+            m, b = coeffs
+            end_x = goal_end_date.toordinal()
+            trend_x = np.array([x[0], end_x])
+            trend_y = m * trend_x + b
+            trend_x_dates = [datetime.date.fromordinal(int(d)) for d in trend_x]
+            return trend_x_dates, trend_y
+        else:
+            # LOWESS smoothing
+            smoothed = lowess(y, x, frac=0.3, it=0)
+            last_x, last_y = smoothed[-2:, 0], smoothed[-2:, 1]
+            local_slope = (last_y[1] - last_y[0]) / (last_x[1] - last_x[0])
+            end_x = goal_end_date.toordinal()
+            extend_x = np.linspace(smoothed[-1, 0], end_x, 30)
+            extend_y = smoothed[-1, 1] + local_slope * (extend_x - smoothed[-1, 0])
+            full_x = np.concatenate([smoothed[:, 0], extend_x])
+            full_y = np.concatenate([smoothed[:, 1], extend_y])
+            trend_x = [datetime.date.fromordinal(int(xx)) for xx in full_x]
+            trend_y = full_y
+            return trend_x, trend_y
     except Exception as e:
         print(f"⚠️ Trendline error: {e}")
         return [], []
 
-kevin_trend_x, kevin_trend_y = compute_trendline(df_kevin_comp, goal_end_date)
-simon_trend_x, simon_trend_y = compute_trendline(df_simon_comp, goal_end_date)
+kevin_trend_x, kevin_trend_y = compute_trendline(df_kevin_comp, goal_end_date, trend_type)
+simon_trend_x, simon_trend_y = compute_trendline(df_simon_comp, goal_end_date, trend_type)
 
 show_trendlines = st.checkbox("Show Linear Trendlines", value=True)
 
