@@ -315,6 +315,7 @@ fig.update_layout(
     ),
     xaxis=dict(
         title="Date",
+        range=x_range,  # Keep manual range logic
         rangeslider=dict(visible=True),
         rangeselector=dict(
             buttons=list([
@@ -345,7 +346,7 @@ if y2_range is not None:
         )
     )
 
-fig.update_yaxes(autorange=True)
+# fig.update_yaxes(autorange=True)
 
 st.plotly_chart(fig, use_container_width=True)
 
