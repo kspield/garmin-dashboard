@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import os
@@ -69,6 +70,8 @@ if simon_available:
 else:
     df_simon = pd.DataFrame()
 
+
+
 # --- UI Layout ---
 st.set_page_config(page_title="Fat Boy Slim Competition", layout="wide")
 
@@ -82,12 +85,9 @@ if "device_checked" not in st.session_state:
     components.html(
         """
         <script>
-        const width = window.innerWidth;
-        if (width < 768) {
-            window.parent.postMessage({type: 'MOBILE_VIEW'}, '*');
-        } else {
-            window.parent.postMessage({type: 'DESKTOP_VIEW'}, '*');
-        }
+        const isMobile = window.innerWidth < 768;
+        const range = isMobile ? "Last 30 Days" : "Competition Timeline";
+        window.parent.postMessage({type: 'SET_RANGE', value: range}, '*');
         </script>
         """,
         height=0,
