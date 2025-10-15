@@ -532,7 +532,7 @@ with col1:
     st.subheader("Kevin's Stats")
     latest_k = df_kevin.dropna(subset=["weight"])["weight"].iloc[-1]
     loss_k = kevin_start_weight - latest_k
-    loss_pct_k = 100 * loss_k / kevin_start_weight
+    loss_pct_k = 100 * loss_k / (kevin_start_weight - kevin_goal_weight)
     st.metric("Starting Weight", f"{kevin_start_weight:.1f} kg")
     st.metric("Latest Weight", f"{latest_k:.1f} kg")
     st.metric("Total Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}%)")
@@ -543,7 +543,7 @@ if simon_available and simon_start_weight is not None:
         st.subheader("Simon's Stats")
         latest_s = df_simon.dropna(subset=["weight"])["weight"].iloc[-1]
         loss_s = simon_start_weight - latest_s
-        loss_pct_s = 100 * loss_s / simon_start_weight
+        loss_pct_s = 100 * loss_s / (simon_start_weight - simon_goal_weight)
         st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
         st.metric("Latest Weight", f"{latest_s:.1f} kg")
         st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)")
