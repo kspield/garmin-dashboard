@@ -14,7 +14,8 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 import urllib.parse
 
 query_params = st.experimental_get_query_params()
-refresh_flag = "refresh" in query_params
+if "refresh" in query_params:
+    st.cache_data.clear()
 
 
 # Firebase init
