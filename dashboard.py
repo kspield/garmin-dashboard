@@ -535,7 +535,7 @@ with col1:
     loss_pct_k = 100 * loss_k / (kevin_start_weight - kevin_goal_weight)
     st.metric("Starting Weight", f"{kevin_start_weight:.1f} kg")
     st.metric("Latest Weight", f"{latest_k:.1f} kg")
-    st.metric("Total Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}%) of goal")
+    st.metric("Total Loss", f"{loss_k:.1f} kg ({loss_pct_k:.1f}% of goal)")
     st.metric("Goal Weight", f"{kevin_goal_weight:.1f} kg")  # ✅ Added
 
 if simon_available and simon_start_weight is not None:
@@ -546,7 +546,7 @@ if simon_available and simon_start_weight is not None:
         loss_pct_s = 100 * loss_s / (simon_start_weight - simon_goal_weight)
         st.metric("Starting Weight", f"{simon_start_weight:.1f} kg")
         st.metric("Latest Weight", f"{latest_s:.1f} kg")
-        st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}%)  of goal")
+        st.metric("Total Loss", f"{loss_s:.1f} kg ({loss_pct_s:.1f}% of goal)")
         st.metric("Goal Weight", f"{simon_goal_weight:.1f} kg")  # ✅ Added
 
 if simon_available and simon_start_weight is None:
