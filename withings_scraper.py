@@ -9,6 +9,9 @@ from withings_api.common import Credentials
 from firebase_admin import credentials as fb_credentials, firestore, initialize_app
 from google.cloud.firestore_v1.base_query import FieldFilter
 from datetime import datetime as dt, time
+import requests
+
+
 
 # Configure debug logging
 logging.basicConfig(level=logging.INFO)
@@ -150,6 +153,8 @@ for group in measures.measuregrps:
             # Track latest scraped date
             if date > latest_scraped_date.isoformat():
                 latest_scraped_date = datetime.date.fromisoformat(date)
+                # after successful Firestore write:
+                requests.get("https://fatboyslim.streamlit.app/?refresh=1")
         except Exception as e:
             logger.error(f"❌ Upload failed for {date}: {e}")
 
