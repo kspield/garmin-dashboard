@@ -11,6 +11,10 @@ from google.api_core.exceptions import GoogleAPIError
 from firebase_admin import credentials, firestore
 from scipy.stats import linregress
 from statsmodels.nonparametric.smoothers_lowess import lowess
+import urllib.parse
+
+query_params = st.experimental_get_query_params()
+refresh_flag = "refresh" in query_params
 
 
 # Firebase init
@@ -30,6 +34,7 @@ db = firestore.client()
 
 # --- Load Data from Firestore ---
 
+@st.cache_data(ttl=1800)  # cache for 1/2 hour
 def load_data(user):
     try:
         docs = db.collection("users").document(user).collection("weight_data").stream()
