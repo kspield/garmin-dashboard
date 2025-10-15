@@ -13,10 +13,10 @@ from scipy.stats import linregress
 from statsmodels.nonparametric.smoothers_lowess import lowess
 import urllib.parse
 
-query_params = st.experimental_get_query_params()
-if "refresh" in query_params:
+query_params = st.query_params
+refresh_flag = "refresh" in query_params
+if refresh_flag:
     st.cache_data.clear()
-
 
 # Firebase init
 if not firebase_admin._apps:
@@ -60,8 +60,7 @@ def load_data(user):
         st.error(f"❌ Unexpected error for '{user}': {e}")
         return pd.DataFrame()
 
-if refresh_flag:
-    st.cache_data.clear()   # invalidate cache when ?refresh=1 is called
+
 
 # Load user data
 df_kevin = load_data("kevin")
