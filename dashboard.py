@@ -59,6 +59,9 @@ def load_data(user):
         st.error(f"❌ Unexpected error for '{user}': {e}")
         return pd.DataFrame()
 
+if refresh_flag:
+    st.cache_data.clear()   # invalidate cache when ?refresh=1 is called
+
 # Load user data
 df_kevin = load_data("kevin")
 
