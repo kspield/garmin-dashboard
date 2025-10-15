@@ -199,6 +199,8 @@ if api:
             meta_ref.set({"date": latest_saved_date})
             now = datetime.datetime.now()
             print(f"{now.strftime('%Y-%m-%d %H:%M:%S')}: Garmin Scraper - ✅ Sync marker at: {latest_saved_date}")
+            # after successful Firestore write:
+            requests.get("https://fatboyslim.streamlit.app/?refresh=1")
         else:
             logger.error("⚠️ No new data saved. Meta date not updated.")
 
@@ -217,4 +219,5 @@ else:
     logger.error("Could not login to Garmin Connect, try again later.")
 
 test = 1
+
 
