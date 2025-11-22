@@ -261,7 +261,7 @@ if show_trendlines and len(kevin_trend_x) > 0:
 kevin_goal_line = np.full_like(kevin_trend_x, kevin_goal_weight)
 
 fig.add_trace(go.Scatter(
-        x=kevin_goal_line, y=kevin_trend_y,
+        x=kevin_trend_x, y=kevin_goal_line,
         mode="lines",
         line=dict(dash="dot", color="red"),
         name="Kevin Linear Trend",
