@@ -343,7 +343,7 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, df_kev
         min_value = min(y1_start, y1_end)
 
     margin1 = max_value - y1_start + 0.5
-    margin2 = y1_end - min_value + 0.5
+    margin2 = y1_end - min_value - 0.5
 
     # Apply proportional margins
     y1_margin1 = margin1
