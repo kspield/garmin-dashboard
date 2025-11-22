@@ -256,6 +256,18 @@ if show_trendlines and len(kevin_trend_x) > 0:
         yaxis="y1",
         showlegend=False
     ))
+    
+# Add Kevin goal line
+kevin_goal_line = np.full_like(kevin_trend_x, kevin_goal_weight)
+
+fig.add_trace(go.Scatter(
+        x=kevin_goal_line, y=kevin_trend_y,
+        mode="lines",
+        line=dict(dash="dot", color="red"),
+        name="Kevin Linear Trend",
+        yaxis="y1",
+        showlegend=False
+    ))
 
 # Add Simon linear trendline
 if show_trendlines and simon_available and len(simon_trend_x) > 0:
