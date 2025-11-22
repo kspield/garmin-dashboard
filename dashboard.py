@@ -264,7 +264,7 @@ fig.add_trace(go.Scatter(
         x=kevin_trend_x, y=kevin_goal_line,
         mode="lines",
         line=dict(dash="dot", color="red"),
-        name="Kevin Linear Trend",
+        name="Kevin Goal Trend",
         yaxis="y1",
         showlegend=False
     ))
@@ -277,6 +277,19 @@ if show_trendlines and simon_available and len(simon_trend_x) > 0:
         line=dict(dash="dot", color="green"),
         name="Simon Linear Trend",
         yaxis="y2",
+        showlegend=False
+    ))
+
+
+# Add Simon goal line
+simon_goal_line = np.full_like(simon_trend_x, simon_goal_weight)
+
+fig.add_trace(go.Scatter(
+        x=simon_trend_x, y=simon_goal_line,
+        mode="lines",
+        line=dict(dash="dot", color="red"),
+        name="Simon Goal Trend",
+        yaxis="y1",
         showlegend=False
     ))
 
@@ -329,8 +342,8 @@ def aligned_ranges_from_goals(x1, x2, goal1_x, goal1_y, goal2_x, goal2_y, df_kev
     else:
         min_value = min(y1_start, y1_end)
 
-    margin1 = max_value - y1_start + 0.2
-    margin2 = y1_end - min_value + 0.2
+    margin1 = max_value - y1_start + 0.5
+    margin2 = y1_end - min_value + 0.5
 
     # Apply proportional margins
     y1_margin1 = margin1
